@@ -1,0 +1,79 @@
+# Working / scratch
+temp/
+
+# Dependencies
+node_modules/
+.pnp
+.pnp.*
+.yarn/install-state.gz
+
+# Build / output
+dist/
+build/
+out/
+.next/
+.turbo/
+.expo/
+.expo-shared/
+*.tsbuildinfo
+next-env.d.ts
+
+# Testing / coverage
+coverage/
+.nyc_output/
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# Env / secrets
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+
+# Caches
+.cache/
+.parcel-cache/
+.eslintcache
+.stylelintcache
+.npm/
+.yarn-cache/
+
+# Editors / IDEs
+.vscode/*
+!.vscode/settings.json
+!.vscode/extensions.json
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# Mobile (React Native / Expo)
+ios/Pods/
+ios/build/
+android/.gradle/
+android/build/
+android/app/build/
+android/local.properties
+*.keystore
+!debug.keystore
+
+# Vercel / deploy
+.vercel/
+
+# AI / agent local config
+.claude/
+.cursor/
+.aider*
