@@ -77,3 +77,5 @@ android/local.properties
 .claude/
 .cursor/
 .aider*
+.agents/
+.codex/
