@@ -245,6 +245,27 @@ Use this as a default template inside a project:
 - Performs transport mapping DTO <-> application command/query models.
 - Must not contain business rules.
 
+## VitalPro Product Topology Standard (Mandatory)
+Scope: repository-wide for module boundaries, contracts, architecture docs, and dependency decisions.
+
+Rules:
+1. The platform MUST be modeled as two product surfaces: `VitalPro Core` and `VitalPro Health`.
+2. `VitalPro Core` MUST remain vertical-agnostic for appointment-based service businesses.
+3. `VitalPro Core` MUST NOT depend on health-only semantics, health-only modules, or FHIR artifacts.
+4. `VitalPro Health` MUST be treated as a vertical extension that can depend on Core capabilities.
+5. `VitalPro Health` MAY introduce healthcare-specific modules such as patients, clinical encounters, consents, and clinical observations.
+6. Cross-surface dependencies MUST point from Health to Core when shared behavior is required.
+7. Reverse dependencies from Core to Health MUST be treated as merge blockers.
+8. FHIR usage MUST be constrained to Health interoperability boundaries.
+9. FHIR artifacts MUST NOT be used as the governing internal domain model for the entire platform.
+10. Health internal domain models MAY use non-FHIR structures when they are mapped at interoperability boundaries.
+
+Verification:
+1. Reviewer checks changed modules and confirms each one is classified as Core or Health in the PR description.
+2. Reviewer checks import direction in changed files and rejects any Core dependency on Health.
+3. Reviewer checks FHIR-specific artifacts and PR evidence are justified as Health interoperability work.
+4. CI gate runs `pnpm nx affected -t lint,typecheck,test,build --base="$NX_BASE" --head="$NX_HEAD"` and MUST pass for affected projects.
+
 ## Stack Baseline (2026)
 Use this default unless an ADR approves an exception.
 
@@ -323,24 +344,30 @@ Verification:
 3. Maintainer checks cloud-agent access configuration for sensitive repository exclusions or restrictions.
 
 ## FHIR Interoperability Standard (Mandatory)
-Scope: this standard is repository-wide for healthcare interoperability artifacts in `contracts/openapi/**`, `src/**/interface/**`, `src/**/application/**`, and `docs/interop/**` when a change handles patient, practitioner, appointment, encounter, schedule, slot, organization, location, or healthcare service data.
+Scope: this standard applies only when a PR introduces or changes `VitalPro Health` FHIR interoperability behavior in `contracts/openapi/**`, `src/**/interface/**`, `src/**/application/**`, or `docs/interop/**`.
 
 Rules:
 1. External healthcare interoperability contracts MUST use HL7 FHIR R4 (`4.0.1`) resource semantics as the default baseline.
-2. FHIR JSON payloads MUST include `resourceType`, and persisted or exchanged resources MUST include `id` according to FHIR base resource rules.
-3. Healthcare scheduling and clinical workflow contracts MUST map to canonical FHIR resources (`Patient`, `Practitioner`, `Organization`, `Location`, `Appointment`, `Schedule`, `Slot`, `Encounter`, `HealthcareService`) when equivalent concepts exist.
-4. Every PR that adds or changes a healthcare interoperability contract MUST update `docs/interop/fhir-mapping.md` with source module, target FHIR resource, terminology/cardinality notes, and consulted official source URLs with consultation date.
-5. The repository MUST keep a baseline R4 capability declaration at `docs/interop/capabilitystatement-r4.json`.
-6. Every new or changed FHIR endpoint introduced by the repository MUST update `docs/interop/capabilitystatement-r4.json`.
-7. Any non-R4 behavior MUST be approved by ADR before merge, and the PR MUST link the ADR.
-8. Every PR in this scope MUST include a completed checklist based on `docs/interop/fhir-pr-checklist.md` in the PR description.
-9. Every PR in this scope MUST include at least one consulted official HL7 FHIR source URL and one consultation date in `YYYY-MM-DD` format.
+2. FHIR JSON payloads MUST include `resourceType`.
+3. Persisted FHIR resources MUST include `id` according to FHIR base resource rules.
+4. FHIR create-request payloads MAY omit `id` when server-side logical id assignment is intended.
+5. FHIR in this repository MUST be implemented as an interoperability layer for Health external exchange.
+6. FHIR in this repository MUST NOT be used as the mandatory canonical model for Core business entities.
+7. Healthcare scheduling and clinical workflow contracts MUST map to canonical FHIR resources (`Patient`, `Practitioner`, `Organization`, `Location`, `Appointment`, `Schedule`, `Slot`, `Encounter`, `HealthcareService`) when equivalent concepts exist.
+8. The first PR that introduces any FHIR endpoint in this repository MUST create `docs/interop/fhir-mapping.md`, `docs/interop/fhir-pr-checklist.md`, and `docs/interop/capabilitystatement-r4.json`.
+9. Every PR in this scope MUST update `docs/interop/fhir-mapping.md` when that file exists.
+10. Every PR in this scope MUST update `docs/interop/capabilitystatement-r4.json` when FHIR endpoints are added or changed and that file exists.
+11. Any non-R4 behavior MUST be approved by ADR before merge.
+12. Any PR that introduces non-R4 behavior MUST link the approving ADR.
+13. Every PR in this scope MUST include a completed checklist in the PR description.
+14. Every PR in this scope MUST include at least one consulted official HL7 FHIR source URL and one consultation date in `YYYY-MM-DD` format.
+15. Every PR in this scope MUST include a mapping summary in the PR description when `docs/interop/fhir-mapping.md` does not yet exist.
 
 Verification:
-1. Reviewer checks modified files under `contracts/openapi/**` and `src/**/interface/**` against `docs/interop/fhir-mapping.md`.
-2. Reviewer checks `docs/interop/capabilitystatement-r4.json` was updated when FHIR endpoints changed.
-3. Reviewer checks PR description contains the completed checklist from `docs/interop/fhir-pr-checklist.md`.
-4. Reviewer checks PR description contains consulted official HL7 URLs and consultation date.
+1. Reviewer checks FHIR behavior changes are present only in Health scope.
+2. Reviewer checks `docs/interop/**` exists only after the first FHIR endpoint is introduced.
+3. Reviewer checks mapping evidence is present in `docs/interop/fhir-mapping.md` or PR description according to rule scope.
+4. Reviewer checks PR description contains the completed checklist, consulted official HL7 URL(s), and consultation date.
 5. CI gate runs `pnpm nx affected -t lint,typecheck,test,build --base="$NX_BASE" --head="$NX_HEAD"` and MUST pass for affected projects.
 
 ## Non-Negotiable Coding Rules
