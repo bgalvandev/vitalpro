@@ -27,6 +27,22 @@ The key words **"MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT", "SHOULD", 
 3. Direct system, developer, and user instructions override AGENTS.md instructions.
 4. Conflicting rules at the same scope level MUST be resolved in the same PR; unresolved conflicts are merge blockers.
 
+## Nested AGENTS.md Activation Rule (Mandatory)
+Scope: repository-wide.
+
+Rules:
+1. A nested `AGENTS.md` MUST be created only when a subdirectory has stable instructions that differ from root standards (for example: different build/test commands, architecture constraints, compliance rules, or deployment workflow).
+2. A nested `AGENTS.md` MUST NOT duplicate root rules verbatim; it MUST document only local deltas and local verification commands.
+3. A nested `AGENTS.md` MUST include a short "Why this file exists" section with the local deviation rationale.
+4. If local divergence is temporary, `AGENTS.override.md` MAY be used instead of introducing permanent nested rules.
+5. When a nested `AGENTS.md` becomes obsolete, it MUST be removed or updated in the same PR that changes the underlying workflow.
+
+Verification:
+1. Reviewer checks that each new nested `AGENTS.md` contains module-specific deltas and no unnecessary duplication.
+2. Reviewer checks that each local rule has an observable verification step (command, file pattern, or CI gate).
+3. Reviewer checks that temporary divergence uses `AGENTS.override.md` or includes explicit permanence rationale in the PR.
+4. Reviewer checks that stale nested guidance is removed or updated when workflows change.
+
 Reference sources to consult for AGENTS format and best practices:
 - https://agents.md/
 - https://github.com/agentsmd/agents.md
