@@ -32,18 +32,22 @@ Reference sources to consult for AGENTS format and best practices:
 - https://github.com/agentsmd/agents.md
 - https://openai.com/index/introducing-codex/
 
-## Language Standard
-All technical artifacts must be written in English by default:
+## Language Standard (Mandatory)
+All technical artifacts MUST be written in English by default:
 - code comments
 - ADRs
 - pull request descriptions
 - commit messages
 - repository standards and architecture docs
 
-Use another language only for explicit product/content requirements.
+Another language MAY be used only for explicit product/content requirements.
+
+Verification:
+1. Reviewer checks changed technical artifacts for English language usage.
+2. Reviewer checks PR description and commit message language for compliance.
 
 ## Commit Message Standard (Mandatory)
-Commit messages must follow **Conventional Commits 1.0.0**:
+Commit messages MUST follow **Conventional Commits 1.0.0**:
 
 ```txt
 <type>[optional scope]: <description>
@@ -53,15 +57,24 @@ Commit messages must follow **Conventional Commits 1.0.0**:
 ```
 
 Rules:
-1. Every commit must start with a valid type.
+1. Every commit MUST start with a valid type.
 2. Allowed default types: `feat`, `fix`, `refactor`, `perf`, `docs`, `test`, `build`, `ci`, `chore`, `revert`.
-3. Scope is optional but strongly recommended, and should map to an Nx project or module.
-4. Breaking changes must be marked with `!` in the header and/or a `BREAKING CHANGE:` footer.
-5. Subject lines must be concise, specific, and written in English.
-6. One commit should represent one logical change (avoid mixed unrelated changes).
-7. `WIP`, `tmp`, or unclear commit messages are not allowed in shared branches.
+3. Scope SHOULD map to an Nx project or module.
+4. Breaking changes MUST be marked with `!` in the header and/or a `BREAKING CHANGE:` footer.
+5. Subject lines MUST be concise, specific, and written in English.
+6. One commit SHOULD represent one logical change.
+7. `WIP`, `tmp`, or unclear commit messages MUST NOT be used in shared branches.
 8. Commit messages MUST NOT include authorship trailers (for example `Co-Authored-By:` or `Co-authored-by:`).
-9. Non-compliant commit messages are merge blockers.
+9. Non-compliant commit messages MUST be treated as merge blockers.
+
+Acceptable deviation:
+1. Deviation from scope mapping is acceptable when no stable Nx project/module scope exists; the PR MUST include explicit justification.
+2. Deviation from one-logical-change-per-commit is acceptable for emergency hotfixes; the PR MUST include explicit justification.
+
+Verification:
+1. Reviewer checks commit headers against Conventional Commits format.
+2. Reviewer checks scope mapping and deviation justification when applicable.
+3. CI or repository commit lint gate (when configured) MUST pass.
 
 Examples:
 - `feat(scheduling-api): add waitlist auto-fill use case`
@@ -84,9 +97,9 @@ The following operations require explicit written approval from a repository own
 3. If a force update is unavoidable, use `git push --force-with-lease` (never plain `--force`) and only on non-protected branches with explicit approval.
 
 ### Protected Branch Policy
-1. `main` and release branches must be protected in the Git hosting platform.
-2. Force push and branch deletion must stay disabled for protected branches.
-3. Protected branches must require pull requests and required status checks.
+1. `main` and release branches MUST be protected in the Git hosting platform.
+2. Force push and branch deletion MUST stay disabled for protected branches.
+3. Protected branches MUST require pull requests and required status checks.
 
 ### Safety Checklist Before Risky Git Operations
 1. Run `git status` and confirm target branch.
@@ -98,7 +111,7 @@ The following operations require explicit written approval from a repository own
 This repository standard is **Nx monorepo + pnpm workspaces**.
 
 ### Required Root Artifacts
-The repository root must contain:
+The repository root MUST contain:
 - `nx.json`
 - `pnpm-workspace.yaml`
 - `package.json` (including a pinned `packageManager` field)
@@ -112,15 +125,15 @@ The repository root must contain:
 5. Commit lockfile updates together with dependency changes.
 
 ### Workspace Rules
-1. Internal workspace dependencies must use the `workspace:` protocol.
-2. Every project must be discoverable by pnpm/Nx via workspace config and/or `project.json`.
+1. Internal workspace dependencies MUST use the `workspace:` protocol.
+2. Every project MUST be discoverable by pnpm/Nx via workspace config and/or `project.json`.
 3. Avoid cross-project relative imports that bypass project boundaries.
 4. Install dependencies from repository root.
 5. Keep one shared workspace lockfile.
 
 ### Nx Task Orchestration Rules
 1. Run monorepo tasks through Nx (`pnpm nx ...`).
-2. Each project must define clear targets (at minimum when applicable):
+2. Each project MUST define clear targets (at minimum when applicable):
    - `build`
    - `lint`
    - `test`
@@ -132,7 +145,7 @@ The repository root must contain:
 ### Caching Rules
 1. Enable caching only for deterministic targets.
 2. Configure caching with `targetDefaults`, `namedInputs`, `inputs`, and `outputs`.
-3. Non-deterministic targets (time/network side effects) must not rely on cache correctness.
+3. Non-deterministic targets (time/network side effects) MUST NOT rely on cache correctness.
 4. Use `--skip-nx-cache` only for troubleshooting.
 
 ### Dependency Boundary Enforcement in Nx
@@ -150,7 +163,7 @@ The repository root must contain:
 ## Mandatory Architecture Standard
 We use **pragmatic Clean Architecture per module**.
 
-Each module may contain:
+Each module MAY contain:
 - `domain/`
 - `application/`
 - `infrastructure/`
@@ -165,13 +178,13 @@ domain -> (no inward custom dependency)
 ```
 
 Rules:
-1. `domain` must not depend on framework, database, HTTP, queues, or external SDKs.
+1. `domain` MUST NOT depend on framework, database, HTTP, queues, or external SDKs.
 2. `application` orchestrates use cases and depends only on `domain` plus ports/contracts.
 3. `infrastructure` implements technical details (DB, external APIs, queues, providers).
 4. `interface` exposes transport concerns (HTTP handlers/controllers, DTOs, serializers).
 5. Dependencies always point inward toward business rules.
 
-This standard is non-negotiable. PRs that violate it must be rejected.
+This standard is non-negotiable. PRs that violate it MUST be rejected.
 
 ## Minimum Module Template
 
@@ -226,14 +239,72 @@ Use this default unless an ADR approves an exception.
 
 ### Product Stack (Default)
 - Web: Next.js + React + TypeScript
+- Styling: Tailwind CSS
+- UI component strategy: repository-owned source components (for example shadcn/ui-style generated components)
 - Mobile: React Native + Expo + TypeScript
 - Backend: Node.js services (REST/OpenAPI when external clients are expected)
-- Validation: boundary validation for all external input (DTO schemas)
+- Validation: boundary validation for all external input with schema-based DTO validation (Zod by default)
 - Database: PostgreSQL
 - ORM: Prisma (or Drizzle by ADR)
 - Migrations: versioned migrations in source control; deploy via CI/CD
 - Cache/queue: Redis when needed
 - Observability: structured logs, error tracking, traces for critical flows
+
+## Frontend and API Contract Standard (Mandatory)
+Scope: repository-wide for `src/**/interface/**`, `src/**/application/**`, `apps/**`, and `contracts/openapi/**`.
+
+Rules:
+1. Web interface projects MUST use Tailwind CSS as the default styling system.
+2. Shared UI components MUST be committed as repository-owned source files.
+3. Shared UI components MUST NOT be consumed as opaque binary bundles.
+4. External input boundaries MUST use Zod schemas by default.
+5. Any alternative to Zod MUST be approved by ADR before merge.
+6. Internal TypeScript-only APIs MAY use tRPC.
+7. APIs consumed by external clients MUST publish REST contracts in OpenAPI 3.2.x under `contracts/openapi/**`.
+8. OpenAPI contracts MUST be versioned and updated in the same PR that changes the external API behavior.
+
+Acceptable deviation:
+1. OpenAPI 3.1.x is acceptable only when a required external integration cannot consume 3.2.x; the PR MUST include explicit compatibility justification and an ADR link.
+
+Verification:
+1. Reviewer checks web projects for Tailwind configuration (`tailwind.config.*` and stylesheet integration).
+2. Reviewer checks component libraries are source-controlled in the repository tree.
+3. Reviewer checks boundary validators use Zod schemas in DTO/interface entry points.
+4. Reviewer checks ADR link when a non-Zod validator is introduced.
+5. Reviewer checks external API changes include OpenAPI updates under `contracts/openapi/**`.
+6. CI gate runs `pnpm nx affected -t lint,typecheck,test,build --base="$NX_BASE" --head="$NX_HEAD"` and MUST pass for affected projects.
+
+## CI and Supply Chain Security Standard (Mandatory)
+Scope: repository-wide for `.github/workflows/**`, `.github/dependabot.yml`, and deployment workflows.
+
+Rules:
+1. The repository MUST run GitHub Actions workflows on pull requests for lint, typecheck, test, and build validation.
+2. Code scanning MUST be enabled with CodeQL using default or advanced setup.
+3. Dependency update automation MUST be configured through `.github/dependabot.yml`.
+4. Production deployments MUST use protected GitHub Environments with required reviewers.
+5. Workflow credentials MUST be stored in GitHub Secrets.
+6. Workflow credentials MUST NOT be committed in plaintext.
+
+Verification:
+1. Reviewer checks `.github/workflows/*.yml` includes `pull_request` triggers for validation workflows.
+2. Reviewer checks CodeQL workflow exists and runs in PR/default-branch contexts.
+3. Reviewer checks `.github/dependabot.yml` exists and covers active package ecosystems.
+4. Maintainer checks production environment protection rules include required reviewers.
+5. Reviewer checks workflows reference `${{ secrets.* }}` and scans diffs for plaintext secrets.
+
+## AI Agent Safety Standard (Mandatory)
+Scope: repository-wide for AI-assisted development workflows and automation.
+
+Rules:
+1. AI coding agents MUST NOT receive unrestricted production credentials.
+2. AI coding agents MUST run with least-privilege tokens scoped to required repositories and actions.
+3. Agent-initiated destructive operations MUST require explicit human approval before execution.
+4. Repositories with cloud coding agents MUST configure access controls or explicitly opt out sensitive repositories.
+
+Verification:
+1. Maintainer checks repository and organization policies for agent permission scopes.
+2. Reviewer checks task or PR audit trail includes explicit human approval for destructive actions.
+3. Maintainer checks cloud-agent access configuration for sensitive repository exclusions or restrictions.
 
 ## FHIR Interoperability Standard (Mandatory)
 Scope: this standard is repository-wide for healthcare interoperability artifacts in `contracts/openapi/**`, `src/**/interface/**`, `src/**/application/**`, and `docs/interop/**` when a change handles patient, practitioner, appointment, encounter, schedule, slot, organization, location, or healthcare service data.
@@ -254,15 +325,15 @@ Verification:
 2. Reviewer checks `docs/interop/capabilitystatement-r4.json` was updated when FHIR endpoints changed.
 3. Reviewer checks PR description contains the completed checklist from `docs/interop/fhir-pr-checklist.md`.
 4. Reviewer checks PR description contains consulted official HL7 URLs and consultation date.
-5. CI gate runs `pnpm nx affected -t lint,typecheck,test,build --base="$NX_BASE" --head="$NX_HEAD"` and must pass for affected projects.
+5. CI gate runs `pnpm nx affected -t lint,typecheck,test,build --base="$NX_BASE" --head="$NX_HEAD"` and MUST pass for affected projects.
 
 ## Non-Negotiable Coding Rules
 1. No cross-layer shortcuts (`interface` or `infrastructure` cannot bypass `application` use cases).
 2. No anemic boundaries: controllers orchestrate I/O, use cases orchestrate app flow, domain owns business decisions.
 3. Never return ORM entities directly from API handlers.
-4. Every external side effect (DB, HTTP, queue, file, email) must be behind an adapter in `infrastructure`.
-5. Domain logic must be deterministic and unit-testable without network/database.
-6. Every new module must ship with at least one core use case and corresponding tests.
+4. Every external side effect (DB, HTTP, queue, file, email) MUST be behind an adapter in `infrastructure`.
+5. Domain logic MUST be deterministic and unit-testable without network/database.
+6. Every new module MUST ship with at least one core use case and corresponding tests.
 7. No hidden coupling across Nx projects through path hacks or forbidden imports.
 
 ## Testing Standard
@@ -270,6 +341,15 @@ Verification:
 - `application`: unit tests with mocked ports for happy path + error path.
 - `infrastructure`: integration tests for adapters (DB/external providers) when applicable.
 - `interface`: contract tests for request/response shape and status codes.
+
+Tooling requirements:
+1. TypeScript unit and integration test suites MUST use Vitest by default.
+2. Browser end-to-end tests MUST use Playwright for web applications.
+3. React component tests MUST use React Testing Library and assert user-visible behavior.
+4. Critical mobile user journeys MUST include end-to-end coverage with Detox or an ADR-approved Expo-compatible equivalent.
+5. Projects SHOULD enforce pre-commit checks with Husky and lint-staged.
+6. Deviation from pre-commit tooling is acceptable only when equivalent CI gates are present for all staged checks.
+7. PRs that deviate from pre-commit tooling MUST include explicit justification.
 
 Minimum gate for merge:
 1. Lint passes for affected projects.
@@ -307,13 +387,13 @@ Default PR validation command pattern (adapt targets as needed):
 pnpm nx affected -t lint,typecheck,test,build --base="$NX_BASE" --head="$NX_HEAD"
 ```
 
-Set `NX_BASE` to the latest successful `main` commit in CI.
+CI MUST set `NX_BASE` to the latest successful `main` commit in `main`.
 
 ## Exceptions and ADRs
-Any exception to this document requires a short ADR including:
+Any exception to this document MUST include a short ADR with:
 - Context
 - Decision
 - Consequences
 - Expiration/review date
 
-Without ADR approval, this AGENTS.md is the source of truth.
+Without ADR approval, this AGENTS.md MUST be treated as the source of truth.
