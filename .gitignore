@@ -1,5 +1,6 @@
 # Working / scratch
 temp/
+tmp/
 
 # Dependencies
 node_modules/
@@ -79,3 +80,6 @@ android/local.properties
 .aider*
 .agents/
 .codex/
+
+# Nx local cache
+.nx/

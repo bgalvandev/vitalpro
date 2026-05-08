@@ -1,0 +1,39 @@
+{
+  "name": "core-api",
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "apps/core-api/src",
+  "projectType": "application",
+  "tags": ["surface:core", "layer:interface", "type:app"],
+  "targets": {
+    "build": {
+      "executor": "@nx/js:tsc",
+      "outputs": ["{workspaceRoot}/dist/apps/core-api"],
+      "options": {
+        "main": "apps/core-api/src/main.ts",
+        "outputPath": "dist/apps/core-api",
+        "tsConfig": "apps/core-api/tsconfig.app.json",
+        "assets": []
+      }
+    },
+    "typecheck": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "pnpm exec tsc -p apps/core-api/tsconfig.app.json --noEmit"
+      }
+    },
+    "test": {
+      "executor": "nx:run-commands",
+      "options": {
+        "cwd": "apps/core-api",
+        "command": "pnpm exec vitest run --config vitest.config.ts"
+      }
+    },
+    "lint": {
+      "executor": "@nx/eslint:lint",
+      "outputs": ["{options.outputFile}"],
+      "options": {
+        "lintFilePatterns": ["apps/core-api/**/*.ts"]
+      }
+    }
+  }
+}

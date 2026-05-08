@@ -1,0 +1,28 @@
+{
+  "name": "@vitalpro/workspace",
+  "version": "0.1.0",
+  "private": true,
+  "packageManager": "pnpm@11.0.8",
+  "scripts": {
+    "nx": "nx",
+    "lint": "pnpm nx run-many -t lint --all",
+    "typecheck": "pnpm nx run-many -t typecheck --all",
+    "test": "pnpm nx run-many -t test --all",
+    "build": "pnpm nx run-many -t build --all",
+    "check": "pnpm nx run-many -t lint,typecheck,test,build --all",
+    "check:sandbox": "NX_DAEMON=false NX_ISOLATE_PLUGINS=false pnpm check",
+    "affected": "pnpm nx affected -t lint,typecheck,test,build"
+  },
+  "devDependencies": {
+    "@nx/eslint": "22.0.0",
+    "@nx/eslint-plugin": "22.0.0",
+    "@nx/js": "22.0.0",
+    "@types/node": "24.10.0",
+    "@typescript-eslint/eslint-plugin": "8.46.3",
+    "@typescript-eslint/parser": "8.46.3",
+    "eslint": "9.39.1",
+    "nx": "22.7.1",
+    "typescript": "5.9.3",
+    "vitest": "4.0.7"
+  }
+}

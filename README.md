@@ -42,3 +42,36 @@ Health can depend on Core. Core cannot depend on Health.
 ## Engineering Standards
 
 Repository-level technical and governance standards are defined in `AGENTS.md`.
+
+## Workspace Bootstrap
+
+### Prerequisites
+
+- Node.js 22 LTS (see `.nvmrc`)
+- Corepack enabled (`corepack enable`)
+- pnpm version pinned by `packageManager` in `package.json`
+
+### Install
+
+```bash
+pnpm install
+```
+
+### Run Quality Gates
+
+```bash
+pnpm check
+```
+
+If your local environment blocks Nx plugin IPC sockets, run checks with:
+
+```bash
+NX_DAEMON=false NX_ISOLATE_PLUGINS=false pnpm check
+```
+
+## Initial Projects
+
+- `apps/core-api`: initial Core application scaffold.
+- `libs/health-domain`: initial Health domain library scaffold.
+
+Both projects currently expose `build`, `lint`, `typecheck`, and `test` Nx targets.

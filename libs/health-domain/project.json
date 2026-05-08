@@ -1,0 +1,39 @@
+{
+  "name": "health-domain",
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "libs/health-domain/src",
+  "projectType": "library",
+  "tags": ["surface:health", "layer:domain", "type:lib"],
+  "targets": {
+    "build": {
+      "executor": "@nx/js:tsc",
+      "outputs": ["{workspaceRoot}/dist/libs/health-domain"],
+      "options": {
+        "main": "libs/health-domain/src/index.ts",
+        "outputPath": "dist/libs/health-domain",
+        "tsConfig": "libs/health-domain/tsconfig.lib.json",
+        "assets": []
+      }
+    },
+    "typecheck": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "pnpm exec tsc -p libs/health-domain/tsconfig.lib.json --noEmit"
+      }
+    },
+    "test": {
+      "executor": "nx:run-commands",
+      "options": {
+        "cwd": "libs/health-domain",
+        "command": "pnpm exec vitest run --config vitest.config.ts"
+      }
+    },
+    "lint": {
+      "executor": "@nx/eslint:lint",
+      "outputs": ["{options.outputFile}"],
+      "options": {
+        "lintFilePatterns": ["libs/health-domain/**/*.ts"]
+      }
+    }
+  }
+}
