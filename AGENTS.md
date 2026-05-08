@@ -235,6 +235,27 @@ Use this default unless an ADR approves an exception.
 - Cache/queue: Redis when needed
 - Observability: structured logs, error tracking, traces for critical flows
 
+## FHIR Interoperability Standard (Mandatory)
+Scope: this standard is repository-wide for healthcare interoperability artifacts in `contracts/openapi/**`, `src/**/interface/**`, `src/**/application/**`, and `docs/interop/**` when a change handles patient, practitioner, appointment, encounter, schedule, slot, organization, location, or healthcare service data.
+
+Rules:
+1. External healthcare interoperability contracts MUST use HL7 FHIR R4 (`4.0.1`) resource semantics as the default baseline.
+2. FHIR JSON payloads MUST include `resourceType`, and persisted or exchanged resources MUST include `id` according to FHIR base resource rules.
+3. Healthcare scheduling and clinical workflow contracts MUST map to canonical FHIR resources (`Patient`, `Practitioner`, `Organization`, `Location`, `Appointment`, `Schedule`, `Slot`, `Encounter`, `HealthcareService`) when equivalent concepts exist.
+4. Every PR that adds or changes a healthcare interoperability contract MUST update `docs/interop/fhir-mapping.md` with source module, target FHIR resource, terminology/cardinality notes, and consulted official source URLs with consultation date.
+5. The repository MUST keep a baseline R4 capability declaration at `docs/interop/capabilitystatement-r4.json`.
+6. Every new or changed FHIR endpoint introduced by the repository MUST update `docs/interop/capabilitystatement-r4.json`.
+7. Any non-R4 behavior MUST be approved by ADR before merge, and the PR MUST link the ADR.
+8. Every PR in this scope MUST include a completed checklist based on `docs/interop/fhir-pr-checklist.md` in the PR description.
+9. Every PR in this scope MUST include at least one consulted official HL7 FHIR source URL and one consultation date in `YYYY-MM-DD` format.
+
+Verification:
+1. Reviewer checks modified files under `contracts/openapi/**` and `src/**/interface/**` against `docs/interop/fhir-mapping.md`.
+2. Reviewer checks `docs/interop/capabilitystatement-r4.json` was updated when FHIR endpoints changed.
+3. Reviewer checks PR description contains the completed checklist from `docs/interop/fhir-pr-checklist.md`.
+4. Reviewer checks PR description contains consulted official HL7 URLs and consultation date.
+5. CI gate runs `pnpm nx affected -t lint,typecheck,test,build --base="$NX_BASE" --head="$NX_HEAD"` and must pass for affected projects.
+
 ## Non-Negotiable Coding Rules
 1. No cross-layer shortcuts (`interface` or `infrastructure` cannot bypass `application` use cases).
 2. No anemic boundaries: controllers orchestrate I/O, use cases orchestrate app flow, domain owns business decisions.
