@@ -1,0 +1,10 @@
+import { describe, expect, it } from 'vitest';
+
+import { <%= module.className %>Entity } from './<%= name %>.entity';
+
+describe('<%= module.className %>Entity', () => {
+  it('keeps deterministic identity', () => {
+    const entity = <%= module.className %>Entity.create({ id: 'seed-id' });
+    expect(entity.id).toBe('seed-id');
+  });
+});

@@ -75,3 +75,33 @@ NX_DAEMON=false NX_ISOLATE_PLUGINS=false pnpm check
 - `libs/health-domain`: initial Health domain library scaffold.
 
 Both projects currently expose `build`, `lint`, `typecheck`, and `test` Nx targets.
+
+## Module Scaffolding (No Manual Boilerplate)
+
+Use the local Nx generator to scaffold new modules with Clean Architecture layout.
+
+```bash
+pnpm nx g @vitalpro/tools:clean-module <module-name> --domain=core
+```
+
+Shortcut script:
+
+```bash
+pnpm run g:clean-module -- <module-name> --domain=health
+```
+
+Generated structure:
+
+```txt
+libs/<module-name>/
+  src/
+    domain/
+    application/
+    infrastructure/
+    interface/
+```
+
+The generator also:
+- creates a buildable `@nx/js` library with Vitest and ESLint.
+- applies boundary tags (`surface:core` or `surface:health`).
+- adds a `typecheck` target.

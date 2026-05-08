@@ -10,7 +10,8 @@
       "default",
       "!{projectRoot}/**/*.spec.ts",
       "!{projectRoot}/tsconfig.spec.json",
-      "!{projectRoot}/vitest.config.ts"
+      "!{projectRoot}/vitest.config.ts",
+      "!{projectRoot}/**/?(*.)+(spec|test).[jt]s?(x)?(.snap)"
     ],
     "sharedGlobals": [
       "{workspaceRoot}/eslint.config.mjs",
@@ -48,7 +49,39 @@
         "^production"
       ],
       "cache": true
+    },
+    "@nx/js:tsc": {
+      "cache": true,
+      "dependsOn": [
+        "^build"
+      ],
+      "inputs": [
+        "production",
+        "^production"
+      ]
+    },
+    "@nx/vitest:test": {
+      "cache": true,
+      "inputs": [
+        "default",
+        "^production"
+      ]
     }
   },
-  "analytics": false
+  "analytics": false,
+  "generators": {
+    "@nx/js:library": {
+      "bundler": "tsc",
+      "linter": "eslint",
+      "unitTestRunner": "vitest",
+      "testEnvironment": "node",
+      "strict": true,
+      "config": "project",
+      "useProjectJson": true
+    },
+    "@vitalpro/tools:clean-module": {
+      "domain": "core",
+      "directory": "libs"
+    }
+  }
 }

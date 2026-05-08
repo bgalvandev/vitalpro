@@ -412,6 +412,22 @@ Minimum gate for merge:
 
 Prefer explicit names over generic names (`service.ts`, `utils.ts` are discouraged).
 
+## Module Scaffolding Standard (Mandatory)
+Scope: repository-wide for new module libraries under `libs/**`.
+
+Rules:
+1. Every new module library under `libs/**` MUST be scaffolded with the local Nx generator `pnpm nx g @vitalpro/tools:clean-module <module-name> --domain=<core|health>`.
+2. Direct manual creation of new module library scaffolding under `libs/**` MUST NOT be used when the local generator can produce the same baseline structure.
+3. Generator output for new modules under `libs/**` MUST preserve Clean Architecture folders in `src/domain`, `src/application`, `src/infrastructure`, and `src/interface`.
+4. Every new module library under `libs/**` MUST include Nx targets for `build`, `lint`, `test`, and `typecheck`.
+5. Every new module library under `libs/**` MUST include a `surface:core` or `surface:health` tag in its Nx project configuration.
+
+Verification:
+1. Reviewer runs `pnpm nx g @vitalpro/tools:clean-module <module-name> --domain=<core|health> --dry-run` and confirms generator availability and output shape.
+2. Reviewer checks the PR diff for `libs/<module-name>/src/domain`, `libs/<module-name>/src/application`, `libs/<module-name>/src/infrastructure`, and `libs/<module-name>/src/interface`.
+3. Reviewer checks `libs/<module-name>/project.json` and confirms `build`, `lint`, `test`, and `typecheck` targets are present.
+4. Reviewer checks `libs/<module-name>/project.json` and confirms `surface:core` or `surface:health` is present in `tags`.
+
 ## Change Workflow
 For every feature or bugfix:
 1. Identify target module, target Nx project(s), and layer(s).

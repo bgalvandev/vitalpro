@@ -1,0 +1,9 @@
+{
+  "generators": {
+    "clean-module": {
+      "factory": "./src/generators/clean-module/clean-module",
+      "schema": "./src/generators/clean-module/schema.json",
+      "description": "Scaffold VitalPro clean architecture module"
+    }
+  }
+}

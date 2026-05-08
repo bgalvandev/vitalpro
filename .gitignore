@@ -83,3 +83,5 @@ android/local.properties
 
 # Nx local cache
 .nx/
+
+vitest.config.*.timestamp*

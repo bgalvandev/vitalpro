@@ -11,18 +11,36 @@
     "build": "pnpm nx run-many -t build --all",
     "check": "pnpm nx run-many -t lint,typecheck,test,build --all",
     "check:sandbox": "NX_DAEMON=false NX_ISOLATE_PLUGINS=false pnpm check",
-    "affected": "pnpm nx affected -t lint,typecheck,test,build"
+    "affected": "pnpm nx affected -t lint,typecheck,test,build",
+    "g:clean-module": "pnpm nx g @vitalpro/tools:clean-module",
+    "typecheck:next": "pnpm --package=typescript@next dlx tsc -p tsconfig.json --noEmit"
   },
   "devDependencies": {
-    "@nx/eslint": "22.0.0",
-    "@nx/eslint-plugin": "22.0.0",
-    "@nx/js": "22.0.0",
+    "@nx/eslint": "22.7.1",
+    "@nx/eslint-plugin": "22.7.1",
+    "@nx/js": "22.7.1",
+    "@nx/plugin": "22.7.1",
+    "@nx/vite": "22.7.1",
+    "@nx/vitest": "22.7.1",
+    "@swc-node/register": "~1.11.1",
+    "@swc/cli": "~0.8.0",
+    "@swc/core": "~1.15.5",
+    "@swc/helpers": "~0.5.18",
     "@types/node": "24.10.0",
     "@typescript-eslint/eslint-plugin": "8.46.3",
     "@typescript-eslint/parser": "8.46.3",
+    "@vitest/coverage-v8": "~4.1.0",
     "eslint": "9.39.1",
+    "jsdom": "^27.1.0",
+    "jsonc-eslint-parser": "^2.1.0",
     "nx": "22.7.1",
+    "prettier": "~3.6.2",
+    "tslib": "^2.3.0",
     "typescript": "5.9.3",
+    "vite": "^8.0.0",
     "vitest": "4.0.7"
+  },
+  "dependencies": {
+    "@nx/devkit": "22.7.1"
   }
 }

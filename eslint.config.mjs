@@ -10,15 +10,18 @@ export default [
       parser: tsParser,
       parserOptions: {
         sourceType: 'module',
-        ecmaVersion: 'latest'
-      }
+        ecmaVersion: 'latest',
+      },
     },
     plugins: {
-      '@typescript-eslint': tsEslintPlugin
+      '@typescript-eslint': tsEslintPlugin,
     },
     rules: {
-      '@typescript-eslint/consistent-type-imports': ['error', { prefer: 'type-imports' }]
-    }
+      '@typescript-eslint/consistent-type-imports': [
+        'error',
+        { prefer: 'type-imports' },
+      ],
+    },
   },
   {
     files: ['**/*.ts', '**/*.tsx', '**/*.js', '**/*.jsx'],
@@ -31,22 +34,39 @@ export default [
           depConstraints: [
             {
               sourceTag: 'surface:core',
-              onlyDependOnLibsWithTags: ['surface:core', 'scope:shared']
+              onlyDependOnLibsWithTags: ['surface:core', 'scope:shared'],
             },
             {
               sourceTag: 'surface:health',
-              onlyDependOnLibsWithTags: ['surface:health', 'surface:core', 'scope:shared']
+              onlyDependOnLibsWithTags: [
+                'surface:health',
+                'surface:core',
+                'scope:shared',
+              ],
             },
             {
               sourceTag: 'scope:shared',
-              onlyDependOnLibsWithTags: ['scope:shared']
-            }
-          ]
-        }
-      ]
-    }
+              onlyDependOnLibsWithTags: ['scope:shared'],
+            },
+          ],
+        },
+      ],
+    },
   },
   {
-    ignores: ['dist/**', 'coverage/**', 'node_modules/**']
-  }
+    ignores: [
+      'dist/**',
+      'coverage/**',
+      'node_modules/**',
+      '**/vitest.config.*.timestamp*',
+    ],
+  },
+  {
+    files: ['**/*.json'],
+    // Override or add rules here
+    rules: {},
+    languageOptions: {
+      parser: await import('jsonc-eslint-parser'),
+    },
+  },
 ];

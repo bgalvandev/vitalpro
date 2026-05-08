@@ -1,0 +1,15 @@
+export interface <%= module.className %>Props {
+  id: string;
+}
+
+export class <%= module.className %>Entity {
+  private constructor(private readonly props: <%= module.className %>Props) {}
+
+  static create(props: <%= module.className %>Props): <%= module.className %>Entity {
+    return new <%= module.className %>Entity(props);
+  }
+
+  get id(): string {
+    return this.props.id;
+  }
+}

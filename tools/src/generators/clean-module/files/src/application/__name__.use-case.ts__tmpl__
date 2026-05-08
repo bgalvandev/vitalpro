@@ -1,0 +1,5 @@
+import { <%= module.className %>Entity } from '../domain';
+
+export function create<%= module.className %>(id: string): <%= module.className %>Entity {
+  return <%= module.className %>Entity.create({ id });
+}

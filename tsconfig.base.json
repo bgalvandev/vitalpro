@@ -16,7 +16,8 @@
     "forceConsistentCasingInFileNames": true,
     "skipLibCheck": true,
     "paths": {
-      "@vitalpro/health-domain": ["./libs/health-domain/src/index.ts"]
+      "@vitalpro/health-domain": ["./libs/health-domain/src/index.ts"],
+      "@vitalpro/tools": ["./tools/src/index.ts"]
     }
   }
 }

@@ -1,0 +1,48 @@
+{
+  "$schema": "https://json-schema.org/schema",
+  "$id": "CleanModule",
+  "title": "VitalPro Clean Module",
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string",
+      "description": "Module name. It will be normalized as a library under libs/ by default.",
+      "$default": {
+        "$source": "argv",
+        "index": 0
+      },
+      "x-prompt": "What module name would you like to use?"
+    },
+    "domain": {
+      "type": "string",
+      "enum": ["core", "health"],
+      "default": "core",
+      "description": "Product surface used to tag dependency boundaries.",
+      "x-prompt": {
+        "message": "Select the surface for this module",
+        "type": "list",
+        "items": [
+          {
+            "value": "core",
+            "label": "VitalPro Core"
+          },
+          {
+            "value": "health",
+            "label": "VitalPro Health"
+          }
+        ]
+      }
+    },
+    "directory": {
+      "type": "string",
+      "default": "libs",
+      "description": "Parent directory for the generated library (default: libs)."
+    },
+    "skipFormat": {
+      "type": "boolean",
+      "default": false,
+      "description": "Skip formatting generated files."
+    }
+  },
+  "required": ["name"]
+}
