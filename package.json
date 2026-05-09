@@ -46,7 +46,7 @@
     "@vitest/coverage-v8": "~4.1.0",
     "eslint": "9.39.1",
     "jsdom": "^27.1.0",
-    "jsonc-eslint-parser": "^2.1.0",
+    "jsonc-eslint-parser": "^3.1.0",
     "newman": "^6.2.1",
     "node-mocks-http": "^1.17.2",
     "nx": "22.7.1",
