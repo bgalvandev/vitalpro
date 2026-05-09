@@ -1,0 +1,78 @@
+openapi: 3.1.2
+info:
+  title: VitalPro Core Appointments API
+  version: 1.0.0
+  summary: Initial external contract for appointments module.
+  license:
+    name: Apache-2.0
+    identifier: Apache-2.0
+servers:
+  - url: https://api.vitalpro.example
+security:
+  - bearerAuth: []
+paths:
+  /api/v1/appointments/{appointmentId}:
+    get:
+      operationId: getAppointmentById
+      summary: Get an appointment by id
+      tags:
+        - appointments
+      parameters:
+        - name: appointmentId
+          in: path
+          required: true
+          description: Unique identifier of the appointment.
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Appointment found.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Appointment"
+        "401":
+          description: Unauthorized request.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: Appointment not found.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  schemas:
+    Appointment:
+      type: object
+      additionalProperties: false
+      required:
+        - id
+        - status
+      properties:
+        id:
+          type: string
+        status:
+          type: string
+          enum:
+            - scheduled
+            - completed
+            - cancelled
+    ErrorResponse:
+      type: object
+      additionalProperties: false
+      required:
+        - code
+        - message
+      properties:
+        code:
+          type: string
+        message:
+          type: string

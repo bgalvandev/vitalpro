@@ -1,0 +1,6 @@
+apis:
+  core-appointments@v1:
+    root: ./contracts/openapi/core/appointments.openapi.yaml
+
+extends:
+  - recommended
