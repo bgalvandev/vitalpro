@@ -44,7 +44,7 @@
     "@typescript-eslint/eslint-plugin": "8.46.3",
     "@typescript-eslint/parser": "8.46.3",
     "@vitest/coverage-v8": "~4.1.0",
-    "eslint": "9.39.1",
+    "eslint": "10.3.0",
     "jsdom": "^27.1.0",
     "jsonc-eslint-parser": "^2.1.0",
     "newman": "^6.2.1",
