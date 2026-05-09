@@ -11,6 +11,8 @@ permissions:
 jobs:
   testcontainers-integration:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -32,6 +34,8 @@ jobs:
 
   schemathesis:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -83,6 +87,8 @@ jobs:
 
   zap-api-scan:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -140,6 +146,8 @@ jobs:
 
   k6-performance:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     steps:
       - name: Checkout
         uses: actions/checkout@v4
