@@ -1,0 +1,37 @@
+name: OpenAPI Breaking Changes
+
+on:
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  contracts:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Fetch base branch
+        run: git fetch --depth=1 origin "${{ github.base_ref }}"
+
+      - name: Check base contract presence
+        id: base_contract
+        run: |
+          if git cat-file -e "origin/${{ github.base_ref }}:contracts/openapi/core/appointments.openapi.yaml" 2>/dev/null; then
+            echo "exists=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "exists=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Detect breaking changes in appointments contract
+        if: steps.base_contract.outputs.exists == 'true'
+        uses: oasdiff/oasdiff-action/breaking@v0.0.46
+        with:
+          base: "origin/${{ github.base_ref }}:contracts/openapi/core/appointments.openapi.yaml"
+          revision: "HEAD:contracts/openapi/core/appointments.openapi.yaml"
+          fail-on: WARN
+
+      - name: Skip check on first contract introduction
+        if: steps.base_contract.outputs.exists != 'true'
+        run: echo "Base branch has no appointments contract yet. Breaking-change diff skipped."

@@ -4,5 +4,10 @@
     "rootDir": ".",
     "types": ["node", "vitest/globals"]
   },
-  "include": ["src/**/*.spec.ts", "vitest.config.ts"]
+  "include": [
+    "src/**/*.spec.ts",
+    "vitest.config.ts",
+    "vitest.integration.config.ts",
+    "vitest.testcontainers.config.ts"
+  ]
 }

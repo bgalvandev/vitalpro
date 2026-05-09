@@ -69,6 +69,66 @@ If your local environment blocks Nx plugin IPC sockets, run checks with:
 NX_DAEMON=false NX_ISOLATE_PLUGINS=false pnpm check
 ```
 
+### API Quality Gates
+
+Baseline contract checks:
+
+```bash
+pnpm run openapi:lint
+```
+
+Advanced API checks (integration + Postman/Newman + Arazzo workflow verification + Pact provider verification):
+
+```bash
+pnpm run api:advanced:check
+```
+
+Full advanced checks including Docker-backed Testcontainers:
+
+```bash
+pnpm run api:advanced:check:full
+```
+
+Workflow artifact checks (Arazzo structure):
+
+```bash
+pnpm run workflow:artifacts:check
+```
+
+Executable Arazzo workflow verification:
+
+```bash
+pnpm run arazzo:verify
+```
+
+Advanced scheduled/manual CI workflow:
+- `.github/workflows/api-advanced.yml`
+- includes Testcontainers integration, Schemathesis, ZAP API scan, and k6 thresholds.
+
+### API Workflow Artifacts
+
+The repository also includes machine-readable API workflow artifacts:
+
+- Arazzo workflows:
+  - `contracts/arazzo/core/appointments-retrieval.arazzo.yaml`
+
+## Environment Strategy
+
+Current stage is local-only setup. Keep runtime config simple and local.
+
+- Committed template:
+  - `.env.example`
+- Local file (ignored by git):
+  - `.env`
+
+Create your local file by copying the template:
+
+```bash
+cp .env.example .env
+```
+
+When deployment starts, add per-environment strategy and platform secrets.
+
 ## Initial Projects
 
 - `apps/core-api`: initial Core application scaffold.
