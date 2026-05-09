@@ -1,0 +1,52 @@
+{
+  "name": "appointments",
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "libs/appointments/src",
+  "projectType": "library",
+  "tags": [
+    "surface:core",
+    "type:lib"
+  ],
+  "targets": {
+    "build": {
+      "executor": "@nx/js:tsc",
+      "outputs": [
+        "{options.outputPath}"
+      ],
+      "options": {
+        "outputPath": "dist/libs/appointments",
+        "main": "libs/appointments/src/index.ts",
+        "tsConfig": "libs/appointments/tsconfig.lib.json",
+        "assets": [
+          "libs/appointments/*.md"
+        ]
+      }
+    },
+    "lint": {
+      "executor": "@nx/eslint:lint",
+      "outputs": [
+        "{options.outputFile}"
+      ],
+      "options": {
+        "lintFilePatterns": [
+          "libs/appointments/**/*.ts"
+        ]
+      }
+    },
+    "test": {
+      "executor": "@nx/vitest:test",
+      "outputs": [
+        "{options.reportsDirectory}"
+      ],
+      "options": {
+        "reportsDirectory": "coverage/libs/appointments"
+      }
+    },
+    "typecheck": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "pnpm exec tsc -p libs/appointments/tsconfig.lib.json --noEmit"
+      }
+    }
+  }
+}

@@ -1,0 +1,188 @@
+name: API Advanced Quality
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '0 5 * * 1'
+
+jobs:
+  testcontainers-integration:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Run integration tests with Testcontainers
+        run: pnpm run test:integration:testcontainers
+
+  schemathesis:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Start Core API
+        run: |
+          PORT=3300 NX_DAEMON=false NX_ISOLATE_PLUGINS=false pnpm nx run core-api:serve:ci > core-api.log 2>&1 &
+          echo $! > core-api.pid
+
+      - name: Wait for Core API
+        run: |
+          for i in $(seq 1 30); do
+            if curl -fsS -H "Authorization: Bearer local-test-token" http://127.0.0.1:3300/api/v1/appointments/apt-001 >/dev/null; then
+              exit 0
+            fi
+            sleep 1
+          done
+          cat core-api.log
+          exit 1
+
+      - name: Schemathesis run
+        uses: schemathesis/action@v3
+        with:
+          schema: contracts/openapi/core/appointments.openapi.yaml
+          base-url: http://127.0.0.1:3300
+          args: >-
+            -H "Authorization: Bearer local-test-token"
+            --checks=not_a_server_error,status_code_conformance,response_schema_conformance
+            --max-examples=25
+
+      - name: Stop Core API
+        if: always()
+        run: |
+          if [ -f core-api.pid ]; then
+            kill "$(cat core-api.pid)" || true
+          fi
+
+  zap-api-scan:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Start Core API
+        run: |
+          PORT=3300 NX_DAEMON=false NX_ISOLATE_PLUGINS=false pnpm nx run core-api:serve:ci > core-api.log 2>&1 &
+          echo $! > core-api.pid
+
+      - name: Wait for Core API
+        run: |
+          for i in $(seq 1 30); do
+            if curl -fsS -H "Authorization: Bearer local-test-token" http://127.0.0.1:3300/api/v1/appointments/apt-001 >/dev/null; then
+              exit 0
+            fi
+            sleep 1
+          done
+          cat core-api.log
+          exit 1
+
+      - name: Prepare local OpenAPI server URL for DAST
+        run: |
+          mkdir -p tmp/zap
+          cp contracts/openapi/core/appointments.openapi.yaml tmp/zap/appointments.openapi.yaml
+          sed -i 's#https://api.vitalpro.example#http://127.0.0.1:3300#g' tmp/zap/appointments.openapi.yaml
+
+      - name: ZAP API Scan
+        uses: zaproxy/action-api-scan@v0.10.0
+        env:
+          ZAP_AUTH_HEADER: Authorization
+          ZAP_AUTH_HEADER_VALUE: Bearer local-test-token
+          ZAP_AUTH_HEADER_SITE: .*
+        with:
+          format: openapi
+          target: tmp/zap/appointments.openapi.yaml
+
+      - name: Stop Core API
+        if: always()
+        run: |
+          if [ -f core-api.pid ]; then
+            kill "$(cat core-api.pid)" || true
+          fi
+
+  k6-performance:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Start Core API
+        run: |
+          PORT=3300 NX_DAEMON=false NX_ISOLATE_PLUGINS=false pnpm nx run core-api:serve:ci > core-api.log 2>&1 &
+          echo $! > core-api.pid
+
+      - name: Wait for Core API
+        run: |
+          for i in $(seq 1 30); do
+            if curl -fsS -H "Authorization: Bearer local-test-token" http://127.0.0.1:3300/api/v1/appointments/apt-001 >/dev/null; then
+              exit 0
+            fi
+            sleep 1
+          done
+          cat core-api.log
+          exit 1
+
+      - name: Setup k6
+        uses: grafana/setup-k6-action@v1
+
+      - name: Run k6 checks
+        uses: grafana/run-k6-action@v1
+        with:
+          path: tests/performance/core-api-smoke.k6.js
+          flags: >-
+            -e BASE_URL=http://127.0.0.1:3300
+            -e TOKEN=local-test-token
+
+      - name: Stop Core API
+        if: always()
+        run: |
+          if [ -f core-api.pid ]; then
+            kill "$(cat core-api.pid)" || true
+          fi

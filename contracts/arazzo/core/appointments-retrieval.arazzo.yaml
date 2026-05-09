@@ -1,0 +1,71 @@
+arazzo: 1.0.1
+info:
+  title: VitalPro Core Appointments Workflows
+  summary: Reusable workflows for appointments API consumption.
+  version: 1.0.0
+sourceDescriptions:
+  - name: coreAppointmentsApi
+    type: openapi
+    url: ../../openapi/core/appointments.openapi.yaml
+workflows:
+  - workflowId: getExistingAppointment
+    summary: Retrieve an existing appointment by id.
+    inputs:
+      type: object
+      required:
+        - token
+        - appointmentId
+      properties:
+        token:
+          type: string
+          description: Bearer token without the Bearer prefix.
+        appointmentId:
+          type: string
+          description: Existing appointment identifier.
+    steps:
+      - stepId: getAppointment
+        operationId: getAppointmentById
+        parameters:
+          - name: Authorization
+            in: header
+            value: Bearer {$inputs.token}
+          - name: appointmentId
+            in: path
+            value: $inputs.appointmentId
+        successCriteria:
+          - condition: $statusCode == 200
+        outputs:
+          appointmentId: $response.body#/id
+          appointmentStatus: $response.body#/status
+    outputs:
+      appointmentId: $steps.getAppointment.outputs.appointmentId
+      appointmentStatus: $steps.getAppointment.outputs.appointmentStatus
+
+  - workflowId: getMissingAppointment
+    summary: Validate not-found behavior for a missing appointment id.
+    inputs:
+      type: object
+      required:
+        - token
+        - appointmentId
+      properties:
+        token:
+          type: string
+        appointmentId:
+          type: string
+    steps:
+      - stepId: getAppointmentNotFound
+        operationId: getAppointmentById
+        parameters:
+          - name: Authorization
+            in: header
+            value: Bearer {$inputs.token}
+          - name: appointmentId
+            in: path
+            value: $inputs.appointmentId
+        successCriteria:
+          - condition: $statusCode == 404
+        outputs:
+          errorCode: $response.body#/code
+    outputs:
+      errorCode: $steps.getAppointmentNotFound.outputs.errorCode
