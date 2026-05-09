@@ -63,11 +63,7 @@ pnpm install
 pnpm check
 ```
 
-If your local environment blocks Nx plugin IPC sockets, run checks with:
-
-```bash
-NX_DAEMON=false NX_ISOLATE_PLUGINS=false pnpm check
-```
+`pnpm check` already runs with `NX_DAEMON=false` and `NX_ISOLATE_PLUGINS=false` for local/CI consistency.
 
 ### API Quality Gates
 
