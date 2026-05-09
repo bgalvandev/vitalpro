@@ -23,7 +23,7 @@ jobs:
       - name: Initialize CodeQL
         uses: github/codeql-action/init@v3
         with:
-          languages: javascript-typescript
+          languages: javascript-typescript,actions
 
       - name: Setup pnpm
         uses: pnpm/action-setup@v4
