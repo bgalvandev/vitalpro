@@ -5,6 +5,10 @@ on:
   schedule:
     - cron: '0 5 * * 1'
 
+concurrency:
+  group: api-advanced-quality-${{ github.ref }}
+  cancel-in-progress: true
+
 permissions:
   contents: read
 
@@ -14,6 +18,7 @@ env:
 jobs:
   testcontainers-integration:
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     permissions:
       contents: read
     steps:
@@ -40,6 +45,7 @@ jobs:
 
   schemathesis:
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     permissions:
       contents: read
     steps:
@@ -100,6 +106,7 @@ jobs:
 
   zap-api-scan:
     runs-on: ubuntu-latest
+    timeout-minutes: 25
     permissions:
       contents: read
       issues: write
@@ -165,6 +172,7 @@ jobs:
 
   k6-performance:
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     permissions:
       contents: read
     steps:
