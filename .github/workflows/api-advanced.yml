@@ -22,6 +22,9 @@ jobs:
 
       - name: Setup pnpm
         uses: pnpm/action-setup@v6
+        with:
+          version: 11.0.8
+          dest: ~/setup-pnpm-v11
 
       - name: Setup Node.js
         uses: actions/setup-node@v6
@@ -45,6 +48,9 @@ jobs:
 
       - name: Setup pnpm
         uses: pnpm/action-setup@v6
+        with:
+          version: 11.0.8
+          dest: ~/setup-pnpm-v11
 
       - name: Setup Node.js
         uses: actions/setup-node@v6
@@ -81,6 +87,7 @@ jobs:
           coverage-step-summary: false
           args: >-
             -H "Authorization: Bearer local-test-token"
+            --warnings=off
             --checks=not_a_server_error,status_code_conformance,response_schema_conformance
             --max-examples=25
 
@@ -102,6 +109,9 @@ jobs:
 
       - name: Setup pnpm
         uses: pnpm/action-setup@v6
+        with:
+          version: 11.0.8
+          dest: ~/setup-pnpm-v11
 
       - name: Setup Node.js
         uses: actions/setup-node@v6
@@ -163,6 +173,9 @@ jobs:
 
       - name: Setup pnpm
         uses: pnpm/action-setup@v6
+        with:
+          version: 11.0.8
+          dest: ~/setup-pnpm-v11
 
       - name: Setup Node.js
         uses: actions/setup-node@v6
