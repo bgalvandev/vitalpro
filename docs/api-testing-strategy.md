@@ -28,9 +28,10 @@ No stack can guarantee zero defects. The goal is fast defect detection and contr
 
 ## OpenAPI version policy
 
-- Runtime validation currently relies on `express-openapi-validator`, which documents support for OpenAPI 3.0.x/3.1.x.
-- Contracts stay on OpenAPI 3.1.2 while runtime validation is enforced in-process.
-- Upgrade to OpenAPI 3.2.x once runtime validator/toolchain support is confirmed end-to-end.
+- Source contract uses OpenAPI 3.2.0.
+- Runtime validation currently relies on `express-openapi-validator`, which supports OpenAPI 3.0.x/3.1.x.
+- Runtime validation normalizes the loaded 3.2.0 contract to 3.1.2 in-memory before middleware registration.
+- The bridge keeps external contract semantics at 3.2.0 while preserving strict request/response runtime validation.
 
 ## Workflow artifacts
 
@@ -40,7 +41,7 @@ No stack can guarantee zero defects. The goal is fast defect detection and contr
 
 ## Arazzo version policy
 
-- Runtime workflow verification currently relies on Redocly Respect in `@redocly/cli`.
-- The current CLI version in this repository supports Arazzo 1.0.x.
-- Workflows stay on Arazzo 1.0.1 while runtime verification is enforced in CI.
-- Upgrade to Arazzo 1.1.x once the local CLI/toolchain supports it end-to-end.
+- Source workflow contract uses Arazzo 1.1.0.
+- Runtime workflow verification currently relies on Redocly Respect in `@redocly/cli`, which executes Arazzo 1.0.1.
+- The verification script creates a temporary compatibility copy with `arazzo: 1.0.1` before Respect execution.
+- The bridge keeps source workflow artifacts on 1.1.0 while preserving executable CI verification.

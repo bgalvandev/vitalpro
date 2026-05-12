@@ -5,6 +5,7 @@ import { createStartupMessage, parsePort } from './main';
 import {
   createCoreApiApp,
   isBearerAuthorizationValid,
+  loadAppointmentsOpenApiSpecForRuntime,
   resolveAppointmentsOpenApiPath,
 } from './interface/http/create-core-api-app';
 
@@ -42,6 +43,11 @@ describe('runtime validation helpers', () => {
     expect(resolveAppointmentsOpenApiPath()).toContain(
       'contracts/openapi/core/appointments.openapi.yaml',
     );
+  });
+
+  it('loads a runtime-compatible OpenAPI spec', () => {
+    const spec = loadAppointmentsOpenApiSpecForRuntime();
+    expect(spec.openapi).toBe('3.1.2');
   });
 
   it('validates bearer authorization format', () => {

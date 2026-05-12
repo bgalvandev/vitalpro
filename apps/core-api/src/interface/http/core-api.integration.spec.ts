@@ -104,4 +104,15 @@ describe('Core API integration', () => {
     expect(response.status).toBe(405);
     expect(response.headers.allow).toBe('GET');
   });
+
+  it('does not expose x-powered-by header', async () => {
+    const response = await invokeRequest(
+      app,
+      'GET',
+      '/api/v1/appointments/apt-001',
+      'Bearer local-test-token',
+    );
+
+    expect(response.headers['x-powered-by']).toBeUndefined();
+  });
 });

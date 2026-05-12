@@ -5,6 +5,12 @@ import { getAppointmentById } from '@vitalpro/appointments';
 import express from 'express';
 import * as OpenApiValidator from 'express-openapi-validator';
 import type { NextFunction, Request, Response } from 'express';
+import { parse } from 'yaml';
+
+type RuntimeApiSpec = Exclude<
+  Parameters<typeof OpenApiValidator.middleware>[0]['apiSpec'],
+  string
+>;
 
 const APPOINTMENTS_OPENAPI_PATH_CANDIDATES = [
   path.resolve(process.cwd(), 'contracts/openapi/core/appointments.openapi.yaml'),
@@ -31,6 +37,21 @@ export function resolveAppointmentsOpenApiPath(): string {
   return specPath;
 }
 
+export function loadAppointmentsOpenApiSpecForRuntime(): RuntimeApiSpec {
+  const specPath = resolveAppointmentsOpenApiPath();
+  const specRaw = fs.readFileSync(specPath, 'utf8');
+  const spec = parse(specRaw) as unknown as RuntimeApiSpec;
+
+  if ((spec as { openapi?: string }).openapi === '3.2.0') {
+    return {
+      ...(spec as Record<string, unknown>),
+      openapi: '3.1.2',
+    } as unknown as RuntimeApiSpec;
+  }
+
+  return spec;
+}
+
 export function isBearerAuthorizationValid(
   authorization: string | undefined,
 ): boolean {
@@ -43,12 +64,13 @@ export function isBearerAuthorizationValid(
 
 export function createCoreApiApp(): express.Express {
   const app = express();
+  app.disable('x-powered-by');
 
   app.use(express.json());
 
   app.use(
     OpenApiValidator.middleware({
-      apiSpec: resolveAppointmentsOpenApiPath(),
+      apiSpec: loadAppointmentsOpenApiSpecForRuntime(),
       validateApiSpec: true,
       validateRequests: true,
       validateResponses: true,
