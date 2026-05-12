@@ -110,7 +110,27 @@ The repository also includes machine-readable API workflow artifacts:
 
 ## Environment Strategy
 
-Current stage is local-only setup. Keep runtime config simple and local.
+The repository now uses two deployment environments in GitHub Actions:
+- `staging`: automatic publish/deploy after a successful `CI` run on `main`.
+- `production`: manual promotion with required environment approval.
+
+Deployment workflows:
+- `.github/workflows/deploy-staging.yml`
+- `.github/workflows/deploy-production.yml`
+
+Container strategy:
+- Runtime image: `ghcr.io/<owner>/<repo>/core-api`
+- Staging tags: `staging` and `sha-<commit-sha>`
+- Production tags: `production` and immutable `prod-<UTC timestamp>`
+- Production deploy promotes an existing image tag (no rebuild), following build-once/promote.
+
+Manual production promotion example:
+
+```bash
+gh workflow run "Deploy Production" --field image_tag=sha-<commit-sha> --field run_smoke_tests=true
+```
+
+Local runtime config remains simple:
 
 - Committed template:
   - `.env.example`
@@ -123,7 +143,7 @@ Create your local file by copying the template:
 cp .env.example .env
 ```
 
-When deployment starts, add per-environment strategy and platform secrets.
+The workflows use `GITHUB_TOKEN` with `packages:write` for GHCR publication.
 
 ## Initial Projects
 
