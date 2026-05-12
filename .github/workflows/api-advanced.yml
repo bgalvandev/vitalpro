@@ -132,6 +132,7 @@ jobs:
         run: |
           mkdir -p tmp/zap
           cp contracts/openapi/core/appointments.openapi.yaml tmp/zap/appointments.openapi.yaml
+          sed -i 's#^openapi: 3.2.0#openapi: 3.1.2#g' tmp/zap/appointments.openapi.yaml
           sed -i 's#https://api.vitalpro.example#http://127.0.0.1:3300#g' tmp/zap/appointments.openapi.yaml
 
       - name: ZAP API Scan

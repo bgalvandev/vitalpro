@@ -32,6 +32,7 @@ No stack can guarantee zero defects. The goal is fast defect detection and contr
 - Runtime validation currently relies on `express-openapi-validator`, which supports OpenAPI 3.0.x/3.1.x.
 - Runtime validation normalizes the loaded 3.2.0 contract to 3.1.2 in-memory before middleware registration.
 - The bridge keeps external contract semantics at 3.2.0 while preserving strict request/response runtime validation.
+- ZAP API scan uses a temporary local copy normalized to OpenAPI 3.1.2 before execution.
 
 ## Workflow artifacts
 
