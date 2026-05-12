@@ -76,6 +76,9 @@ jobs:
         with:
           schema: contracts/openapi/core/appointments.openapi.yaml
           base-url: http://127.0.0.1:3300
+          coverage-report: false
+          coverage-pr-comment: false
+          coverage-step-summary: false
           args: >-
             -H "Authorization: Bearer local-test-token"
             --checks=not_a_server_error,status_code_conformance,response_schema_conformance
