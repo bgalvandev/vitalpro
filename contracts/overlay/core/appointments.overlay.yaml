@@ -1,0 +1,13 @@
+overlay: 1.1.0
+info:
+  title: VitalPro Core Appointments Contract Overlay
+  version: 1.0.0
+  description: Overlay metadata for consumer-safe Core contract publication.
+extends: ../../openapi/core/appointments.openapi.yaml
+actions:
+  - target: "$.info"
+    description: Add non-functional ownership metadata to the contract.
+    update:
+      x-vitalpro-metadata:
+        surface: core
+        owner: core-api

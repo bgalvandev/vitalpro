@@ -38,7 +38,27 @@ function validateArazzoDocument(doc, filePath) {
   assertCondition(Array.isArray(doc.workflows) && doc.workflows.length > 0, `${filePath}: workflows must contain at least one workflow`);
 }
 
-async function validateYamlArtifacts() {
+function validateOverlayAction(action, filePath, index) {
+  assertCondition(typeof action === 'object' && action !== null, `${filePath}: action[${index}] must be an object`);
+  assertCondition(typeof action.target === 'string' && action.target.length > 0, `${filePath}: action[${index}] must define a non-empty target`);
+  assertCondition(
+    Object.hasOwn(action, 'update') ||
+      Object.hasOwn(action, 'remove') ||
+      Object.hasOwn(action, 'copy'),
+    `${filePath}: action[${index}] must define at least one modifier (update/remove/copy)`,
+  );
+}
+
+function validateOverlayDocument(doc, filePath) {
+  assertCondition(typeof doc === 'object' && doc !== null, `${filePath}: document must be an object`);
+  assertCondition(typeof doc.overlay === 'string', `${filePath}: missing overlay version`);
+  assertCondition(typeof doc.info?.title === 'string', `${filePath}: info.title is required`);
+  assertCondition(typeof doc.info?.version === 'string', `${filePath}: info.version is required`);
+  assertCondition(Array.isArray(doc.actions) && doc.actions.length > 0, `${filePath}: actions must contain at least one action`);
+  doc.actions.forEach((action, index) => validateOverlayAction(action, filePath, index));
+}
+
+async function validateArazzoArtifacts() {
   const arazzoDir = path.join(workspaceRoot, 'contracts', 'arazzo');
 
   const arazzoFiles = (await listFilesRecursively(arazzoDir)).filter((filePath) =>
@@ -53,8 +73,24 @@ async function validateYamlArtifacts() {
   }
 }
 
+async function validateOverlayArtifacts() {
+  const overlayDir = path.join(workspaceRoot, 'contracts', 'overlay');
+
+  const overlayFiles = (await listFilesRecursively(overlayDir)).filter((filePath) =>
+    filePath.endsWith('.overlay.yaml') || filePath.endsWith('.overlay.yml'),
+  );
+
+  assertCondition(overlayFiles.length > 0, 'No Overlay files found under contracts/overlay/**');
+
+  for (const filePath of overlayFiles) {
+    const raw = await fs.readFile(filePath, 'utf8');
+    validateOverlayDocument(parse(raw), filePath);
+  }
+}
+
 async function main() {
-  await validateYamlArtifacts();
+  await validateArazzoArtifacts();
+  await validateOverlayArtifacts();
   console.log('Workflow artifacts validation passed.');
 }
 

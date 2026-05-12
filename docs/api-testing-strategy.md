@@ -35,4 +35,12 @@ No stack can guarantee zero defects. The goal is fast defect detection and contr
 ## Workflow artifacts
 
 - Arazzo workflows under `contracts/arazzo/**` define multi-step API consumption flows.
-- `pnpm run workflow:artifacts:check` validates the expected Arazzo artifact structure.
+- Overlay documents under `contracts/overlay/**` define repeatable contract transformations.
+- `pnpm run workflow:artifacts:check` validates both Arazzo and Overlay artifact structure.
+
+## Arazzo version policy
+
+- Runtime workflow verification currently relies on Redocly Respect in `@redocly/cli`.
+- The current CLI version in this repository supports Arazzo 1.0.x.
+- Workflows stay on Arazzo 1.0.1 while runtime verification is enforced in CI.
+- Upgrade to Arazzo 1.1.x once the local CLI/toolchain supports it end-to-end.
