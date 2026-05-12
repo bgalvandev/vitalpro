@@ -81,13 +81,20 @@ export function createCoreApiApp(): express.Express {
   app.use(
     (
       err: { status?: number; message?: string },
-      _req: Request,
+      req: Request,
       res: Response,
       _next: NextFunction,
     ) => {
     const status = err.status ?? 500;
     const message = err.message ?? 'Internal server error';
     const code = status === 401 ? 'unauthorized' : 'internal_error';
+
+    if (
+      status === 405 &&
+      req.path.startsWith('/api/v1/appointments/')
+    ) {
+      res.setHeader('Allow', 'GET');
+    }
 
     return res.status(status).json({
       code,

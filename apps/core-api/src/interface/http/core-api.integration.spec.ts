@@ -9,10 +9,12 @@ import { createCoreApiApp } from './create-core-api-app';
 interface InvocationResult {
   status: number;
   body: unknown;
+  headers: Record<string, string | string[] | number>;
 }
 
-async function invokeGet(
+async function invokeRequest(
   app: express.Express,
+  method: string,
   path: string,
   authorization?: string,
 ): Promise<InvocationResult> {
@@ -22,7 +24,7 @@ async function invokeGet(
   }
 
   const request = httpMocks.createRequest({
-    method: 'GET',
+    method,
     url: path,
     headers,
   });
@@ -40,6 +42,7 @@ async function invokeGet(
   return {
     status: response.statusCode,
     body: response._getJSONData(),
+    headers: response._getHeaders(),
   };
 }
 
@@ -47,7 +50,11 @@ describe('Core API integration', () => {
   const app = createCoreApiApp();
 
   it('returns 401 when authorization header is missing', async () => {
-    const response = await invokeGet(app, '/api/v1/appointments/apt-001');
+    const response = await invokeRequest(
+      app,
+      'GET',
+      '/api/v1/appointments/apt-001',
+    );
 
     expect(response.status).toBe(401);
     expect(response.body).toEqual({
@@ -57,8 +64,9 @@ describe('Core API integration', () => {
   });
 
   it('returns 200 with appointment payload', async () => {
-    const response = await invokeGet(
+    const response = await invokeRequest(
       app,
+      'GET',
       '/api/v1/appointments/apt-001',
       'Bearer local-test-token',
     );
@@ -71,8 +79,9 @@ describe('Core API integration', () => {
   });
 
   it('returns 404 when appointment does not exist', async () => {
-    const response = await invokeGet(
+    const response = await invokeRequest(
       app,
+      'GET',
       '/api/v1/appointments/apt-999',
       'Bearer local-test-token',
     );
@@ -82,5 +91,17 @@ describe('Core API integration', () => {
       code: 'not_found',
       message: 'Appointment not found',
     });
+  });
+
+  it('returns 405 with allow header for unsupported methods', async () => {
+    const response = await invokeRequest(
+      app,
+      'TRACE',
+      '/api/v1/appointments/apt-001',
+      'Bearer local-test-token',
+    );
+
+    expect(response.status).toBe(405);
+    expect(response.headers.allow).toBe('GET');
   });
 });
