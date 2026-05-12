@@ -1,0 +1,15 @@
+.git
+.github
+.nx
+.vscode
+.agents
+.claude
+.codex
+node_modules
+dist
+coverage
+tmp
+*.log
+.env
+.env.*
+!.env.example

@@ -1,0 +1,72 @@
+name: Deploy Staging
+
+on:
+  workflow_run:
+    workflows:
+      - CI
+    types:
+      - completed
+    branches:
+      - main
+
+permissions:
+  contents: read
+  packages: write
+
+concurrency:
+  group: deploy-staging
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    name: Publish and deploy core-api image to staging
+    if: ${{ github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.event == 'push' && github.event.workflow_run.head_branch == 'main' }}
+    runs-on: ubuntu-latest
+    env:
+      REGISTRY: ghcr.io
+      IMAGE_NAME: ${{ github.repository }}/core-api
+      IMAGE_TAG_SHA: sha-${{ github.event.workflow_run.head_sha }}
+    environment:
+      name: staging
+    permissions:
+      contents: read
+      packages: write
+      deployments: write
+    steps:
+      - name: Checkout successful main commit
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.workflow_run.head_sha }}
+
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and push staging image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: ./Dockerfile
+          push: true
+          tags: |
+            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ env.IMAGE_TAG_SHA }}
+            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:staging
+
+      - name: Staging smoke check
+        run: |
+          docker run -d --name core-api-staging --rm -p 3300:3000 "${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:staging"
+          for i in $(seq 1 30); do
+            if curl -fsS -H "Authorization: Bearer local-test-token" http://127.0.0.1:3300/api/v1/appointments/apt-001 >/dev/null; then
+              exit 0
+            fi
+            sleep 1
+          done
+          docker logs core-api-staging
+          exit 1
+
+      - name: Stop staging container
+        if: always()
+        run: docker rm -f core-api-staging || true
