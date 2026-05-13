@@ -20,3 +20,6 @@ This repository includes optional AI workflows for Codex.
 2. Open a PR and apply label `ai:review`.
 3. Trigger `AI Codex Dispatch` manually for implementation tasks.
 4. Review generated PRs and merge only after standard checks pass.
+
+## Behavior without secret
+- If `OPENAI_API_KEY` is missing, `AI Codex PR Review` is skipped with an explicit message instead of failing.

@@ -15,8 +15,15 @@ env:
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: "true"
 
 jobs:
+  codex-review-skipped:
+    if: ${{ vars.AI_AUTO_REVIEW == 'true' && secrets.OPENAI_API_KEY == '' }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Explain skip reason
+        run: echo "Skipping Codex review because OPENAI_API_KEY is not configured."
+
   codex-review:
-    if: ${{ contains(join(github.event.pull_request.labels.*.name, ','), 'ai:review') || vars.AI_AUTO_REVIEW == 'true' }}
+    if: ${{ (contains(join(github.event.pull_request.labels.*.name, ','), 'ai:review') || vars.AI_AUTO_REVIEW == 'true') && secrets.OPENAI_API_KEY != '' }}
     runs-on: ubuntu-latest
     permissions:
       contents: read
