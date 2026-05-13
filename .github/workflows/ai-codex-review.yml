@@ -15,15 +15,8 @@ env:
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: "true"
 
 jobs:
-  codex-review-skipped:
-    if: ${{ vars.AI_AUTO_REVIEW == 'true' && secrets.OPENAI_API_KEY == '' }}
-    runs-on: ubuntu-latest
-    steps:
-      - name: Explain skip reason
-        run: echo "Skipping Codex review because OPENAI_API_KEY is not configured."
-
   codex-review:
-    if: ${{ (contains(join(github.event.pull_request.labels.*.name, ','), 'ai:review') || vars.AI_AUTO_REVIEW == 'true') && secrets.OPENAI_API_KEY != '' }}
+    if: ${{ contains(join(github.event.pull_request.labels.*.name, ','), 'ai:review') || vars.AI_AUTO_REVIEW == 'true' }}
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -44,7 +37,19 @@ jobs:
             "$PR_BASE_REF" \
             "+refs/pull/$PR_NUMBER/head"
 
+      - name: Check OpenAI key availability
+        id: key_check
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+        run: |
+          if [ -n "$OPENAI_API_KEY" ]; then
+            echo "has_key=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "has_key=false" >> "$GITHUB_OUTPUT"
+          fi
+
       - name: Run Codex review
+        if: ${{ steps.key_check.outputs.has_key == 'true' }}
         id: run_codex
         uses: openai/codex-action@v1
         with:
@@ -72,6 +77,10 @@ jobs:
             1) Findings by severity with file paths.
             2) Missing tests or validations.
             3) Residual risks if no blocking findings.
+
+      - name: Skip review when key is missing
+        if: ${{ steps.key_check.outputs.has_key != 'true' }}
+        run: echo "Skipping Codex review because OPENAI_API_KEY is not configured."
 
   post-review-comment:
     runs-on: ubuntu-latest
