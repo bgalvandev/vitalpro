@@ -13,6 +13,9 @@ permissions:
   contents: read
   packages: write
 
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: "true"
+
 concurrency:
   group: deploy-staging
   cancel-in-progress: false
@@ -34,7 +37,7 @@ jobs:
       deployments: write
     steps:
       - name: Checkout successful main commit
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           ref: ${{ github.event.workflow_run.head_sha }}
 
