@@ -43,6 +43,29 @@ Health can depend on Core. Core cannot depend on Health.
 
 Repository-level technical and governance standards are defined in `AGENTS.md`.
 
+## AI Development Runtime
+
+This repository includes an AI-first runtime for agentic development:
+
+- Copilot repository instructions: `.github/copilot-instructions.md`
+- Context-specific instruction files: `.github/instructions/*.instructions.md`
+- Agent task prompts: `.github/ai/prompts/*.md`
+- Agent operating docs: `docs/ai/ai-operating-model.md`
+- AI guardrail checks: `pnpm run ai:guard`
+- AI context pack generator: `pnpm run ai:task-pack -- --task \"<task>\"`
+
+### AI Workflows (GitHub Actions)
+
+- `AI Codex PR Review`: `.github/workflows/ai-codex-review.yml`
+  - Add label `ai:review` on a pull request to trigger review.
+  - Optional repository variable `AI_AUTO_REVIEW=true` enables auto-run for all PRs.
+- `AI Codex Dispatch`: `.github/workflows/ai-codex-dispatch.yml`
+  - Manually dispatch a coding task and optionally create a PR.
+
+Required secrets:
+
+- `OPENAI_API_KEY` for Codex workflows.
+
 ## Workspace Bootstrap
 
 ### Prerequisites
@@ -64,6 +87,13 @@ pnpm check
 ```
 
 `pnpm check` already runs with `NX_DAEMON=false` and `NX_ISOLATE_PLUGINS=false` for local/CI consistency.
+
+AI-specific commands:
+
+```bash
+pnpm run ai:guard
+pnpm run ai:task-pack -- --task "implement bookings waitlist use case"
+```
 
 ### API Quality Gates
 
