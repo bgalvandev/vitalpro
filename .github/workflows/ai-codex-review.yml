@@ -1,0 +1,89 @@
+name: AI Codex PR Review
+
+on:
+  pull_request:
+    types:
+      - opened
+      - synchronize
+      - reopened
+      - labeled
+
+permissions:
+  contents: read
+
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: "true"
+
+jobs:
+  codex-review:
+    if: ${{ contains(join(github.event.pull_request.labels.*.name, ','), 'ai:review') || vars.AI_AUTO_REVIEW == 'true' }}
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    outputs:
+      final_message: ${{ steps.run_codex.outputs.final-message }}
+    steps:
+      - name: Checkout PR merge ref
+        uses: actions/checkout@v6
+        with:
+          ref: refs/pull/${{ github.event.pull_request.number }}/merge
+
+      - name: Pre-fetch base and head refs
+        env:
+          PR_BASE_REF: ${{ github.event.pull_request.base.ref }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+        run: |
+          git fetch --no-tags origin \
+            "$PR_BASE_REF" \
+            "+refs/pull/$PR_NUMBER/head"
+
+      - name: Run Codex review
+        id: run_codex
+        uses: openai/codex-action@v1
+        with:
+          openai-api-key: ${{ secrets.OPENAI_API_KEY }}
+          safety-strategy: drop-sudo
+          sandbox: read-only
+          prompt: |
+            Review this pull request for the VitalPro monorepo.
+
+            Repository constraints:
+            - Follow AGENTS.md as mandatory standard.
+            - Enforce Clean Architecture boundaries.
+            - Reject Core -> Health dependencies.
+            - Flag contract drift between API behavior and contracts/openapi/**.
+
+            PR metadata:
+            - Number: #${{ github.event.pull_request.number }}
+            - Title: ${{ github.event.pull_request.title }}
+            - Body: ${{ github.event.pull_request.body }}
+
+            Compare only PR-introduced changes:
+            git log --oneline ${{ github.event.pull_request.base.sha }}...${{ github.event.pull_request.head.sha }}
+
+            Output format:
+            1) Findings by severity with file paths.
+            2) Missing tests or validations.
+            3) Residual risks if no blocking findings.
+
+  post-review-comment:
+    runs-on: ubuntu-latest
+    needs: codex-review
+    if: ${{ needs.codex-review.outputs.final_message != '' }}
+    permissions:
+      issues: write
+      pull-requests: write
+    steps:
+      - name: Publish Codex review comment
+        uses: actions/github-script@v8
+        env:
+          CODEX_FINAL_MESSAGE: ${{ needs.codex-review.outputs.final_message }}
+        with:
+          github-token: ${{ github.token }}
+          script: |
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.payload.pull_request.number,
+              body: process.env.CODEX_FINAL_MESSAGE,
+            });
