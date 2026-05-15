@@ -1,0 +1,119 @@
+name: AI Codex Auto-Fix CI
+
+on:
+  workflow_run:
+    workflows:
+      - CI
+    types:
+      - completed
+
+permissions:
+  actions: write
+  contents: read
+  pull-requests: write
+
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: "true"
+
+jobs:
+  autofix:
+    if: ${{ github.event.workflow_run.conclusion == 'failure' }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Resolve target PR
+        id: target
+        uses: actions/github-script@v8
+        with:
+          script: |
+            const workflowRun = context.payload.workflow_run;
+            if (workflowRun.event !== "pull_request") {
+              core.setOutput("enabled", "false");
+              core.setOutput("reason", "Workflow run is not linked to a pull request.");
+              return;
+            }
+
+            const [linkedPr] = workflowRun.pull_requests || [];
+            if (!linkedPr) {
+              core.setOutput("enabled", "false");
+              core.setOutput("reason", "No pull request associated with failed CI run.");
+              return;
+            }
+
+            const pr = await github.rest.pulls.get({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: linkedPr.number,
+            });
+
+            const labels = (pr.data.labels || []).map((label) => label.name);
+            const isAiManaged = labels.includes("ai") || labels.includes("automated");
+            if (!isAiManaged) {
+              core.setOutput("enabled", "false");
+              core.setOutput("reason", "PR is not AI-managed (missing ai/automated labels).");
+              return;
+            }
+
+            if (pr.data.head.ref.startsWith("ai/codex-autofix-")) {
+              core.setOutput("enabled", "false");
+              core.setOutput("reason", "Skipping auto-fix loop on ai/codex-autofix-* branches.");
+              return;
+            }
+
+            core.setOutput("enabled", "true");
+            core.setOutput("pr_number", String(pr.data.number));
+            core.setOutput("run_url", workflowRun.html_url);
+
+      - name: Stop when auto-fix is not enabled
+        if: ${{ steps.target.outputs.enabled != 'true' }}
+        run: echo "${{ steps.target.outputs.reason }}"
+
+      - name: Check OpenAI key availability
+        if: ${{ steps.target.outputs.enabled == 'true' }}
+        id: key_check
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+        run: |
+          if [ -n "$OPENAI_API_KEY" ]; then
+            echo "has_key=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "has_key=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Skip when OpenAI key is missing
+        if: ${{ steps.target.outputs.enabled == 'true' && steps.key_check.outputs.has_key != 'true' }}
+        run: echo "Skipping auto-fix because OPENAI_API_KEY is not configured."
+
+      - name: Dispatch manual fix workflow
+        if: ${{ steps.target.outputs.enabled == 'true' && steps.key_check.outputs.has_key == 'true' }}
+        uses: actions/github-script@v8
+        with:
+          script: |
+            await github.rest.actions.createWorkflowDispatch({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              workflow_id: "ai-codex-fix-ci.yml",
+              ref: "main",
+              inputs: {
+                pr_number: `${{ steps.target.outputs.pr_number }}`,
+                reason: `Auto-fix triggered from failed CI run: ${{ steps.target.outputs.run_url }}`,
+                model: "gpt-5.5",
+                effort: "high",
+              },
+            });
+
+      - name: Report auto-fix dispatch
+        if: ${{ steps.target.outputs.enabled == 'true' && steps.key_check.outputs.has_key == 'true' }}
+        uses: actions/github-script@v8
+        with:
+          script: |
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: Number(`${{ steps.target.outputs.pr_number }}`),
+              body: [
+                "Codex auto-fix dispatch triggered.",
+                "",
+                `- source run: ${{ steps.target.outputs.run_url }}`,
+                "- workflow: AI Codex Fix CI",
+              ].join("\n"),
+            });
