@@ -62,6 +62,27 @@ Verification:
 1. Reviewer checks changed technical artifacts for English language usage.
 2. Reviewer checks PR description and commit message language for compliance.
 
+## Research and Recommendation Coverage Standard (Mandatory)
+Scope: repository-wide for tooling evaluations, architecture option analyses, and recommendation artifacts in `docs/**`, ADRs, issue discussions, and pull request descriptions.
+
+Impact classification:
+1. A recommendation artifact is high-impact when it selects or replaces a production platform, changes security or compliance posture, changes production cost model, or changes CI/CD execution platform.
+2. A recommendation artifact is high-impact when it asks for a best or default option for current use (for example "best option", "mejor opcion", "today", or "hoy"), or when it selects or replaces the local development or CI emulation stack for cloud services.
+3. A recommendation artifact is low-impact when it does not meet any high-impact condition.
+
+Rules:
+1. Every recommendation artifact MUST declare `high-impact` or `low-impact` with one rationale sentence.
+2. Every high-impact recommendation artifact MUST evaluate at least one option from each category: official or vendor-native, commercial, and open-source emerging.
+3. Every high-impact recommendation artifact MUST include a side-by-side comparison that covers capabilities, limitations, cost or licensing model, and maturity signals.
+4. Every high-impact recommendation artifact MUST include at least one explicit risk or unknown for each option and a final recommendation tied to a stated decision context.
+5. Every recommendation artifact that uses external sources MUST include consultation dates in `YYYY-MM-DD` format.
+6. Every low-impact recommendation artifact MUST include at least two options and a one-sentence tradeoff summary.
+
+Verification:
+1. Reviewer checks each recommendation artifact includes impact classification and one-sentence rationale.
+2. Reviewer checks high-impact recommendation artifacts include all three required categories, comparison coverage, one explicit risk or unknown per option, and a final recommendation linked to a clear decision context.
+3. Reviewer checks recommendation artifacts that cite external sources include consultation dates in `YYYY-MM-DD` format, and reviewer checks low-impact recommendation artifacts include at least two options and a one-sentence tradeoff summary.
+
 ## Commit Message Standard (Mandatory)
 Commit messages MUST follow **Conventional Commits 1.0.0**:
 
