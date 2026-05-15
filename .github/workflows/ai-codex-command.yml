@@ -1,0 +1,225 @@
+name: AI Codex Command
+
+on:
+  issue_comment:
+    types:
+      - created
+
+permissions:
+  actions: write
+  contents: read
+  issues: write
+  pull-requests: read
+
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: "true"
+
+jobs:
+  dispatch-from-comment:
+    if: ${{ github.event.issue.pull_request && startsWith(github.event.comment.body, '/codex') }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Authorize commenter
+        id: authorize
+        uses: actions/github-script@v8
+        with:
+          script: |
+            const association = context.payload.comment.author_association;
+            const allowed = new Set(["OWNER", "MEMBER", "COLLABORATOR"]);
+            const authorized = allowed.has(association);
+            core.setOutput("authorized", authorized ? "true" : "false");
+            core.setOutput("association", association);
+
+      - name: Reject unauthorized command
+        if: ${{ steps.authorize.outputs.authorized != 'true' }}
+        uses: actions/github-script@v8
+        with:
+          script: |
+            const association = `${{ steps.authorize.outputs.association }}`;
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              body: `Command rejected. Association \`${association}\` is not allowed to run \`/codex\`.`,
+            });
+            core.setFailed("Unauthorized /codex command.");
+
+      - name: Parse command
+        id: parse
+        uses: actions/github-script@v8
+        with:
+          script: |
+            const body = context.payload.comment.body.trim();
+            const firstLine = body.split("\n").map((line) => line.trim()).find(Boolean) || "";
+            const commandMatch = firstLine.match(/^\/codex\b\s*(.*)$/i);
+
+            if (!commandMatch) {
+              core.setFailed("Unsupported /codex command format.");
+              return;
+            }
+
+            let payload = commandMatch[1].trim();
+            const defaults = {
+              model: "gpt-5.5",
+              effort: "medium",
+              create_pr: "true",
+            };
+
+            const modelMatch = payload.match(/--model=(\S+)/);
+            if (modelMatch) {
+              defaults.model = modelMatch[1];
+              payload = payload.replace(modelMatch[0], "").trim();
+            }
+
+            const effortMatch = payload.match(/--effort=(low|medium|high|xhigh)\b/i);
+            if (effortMatch) {
+              defaults.effort = effortMatch[1].toLowerCase();
+              payload = payload.replace(effortMatch[0], "").trim();
+            }
+
+            const createPrMatch = payload.match(/--create-pr=(true|false)\b/i);
+            if (createPrMatch) {
+              defaults.create_pr = createPrMatch[1].toLowerCase();
+              payload = payload.replace(createPrMatch[0], "").trim();
+            }
+
+            if (!payload) {
+              core.setFailed("Missing task. Use `/codex <task>`.");
+              return;
+            }
+
+            const fixCiMatch = payload.match(/^fix-ci\b/i);
+            if (fixCiMatch) {
+              const reason = payload.replace(/^fix-ci\b/i, "").trim();
+              core.setOutput("mode", "fix-ci");
+              core.setOutput("task", "");
+              core.setOutput("model", defaults.model);
+              core.setOutput("effort", defaults.effort);
+              core.setOutput("create_pr", "true");
+              core.setOutput("base_ref", "");
+              core.setOutput("target_mode", "");
+              core.setOutput("head_repo", "");
+              core.setOutput("reason", reason || "Triggered from /codex fix-ci command.");
+              core.setOutput("pr_number", String(context.issue.number));
+              return;
+            }
+
+            const pull = await github.rest.pulls.get({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: context.issue.number,
+            });
+
+            const headRepo = pull.data.head.repo?.full_name;
+            const baseRepo = `${context.repo.owner}/${context.repo.repo}`;
+            const isFork = headRepo && headRepo !== baseRepo;
+
+            if (isFork) {
+              core.setOutput("task", payload);
+              core.setOutput("model", defaults.model);
+              core.setOutput("effort", defaults.effort);
+              core.setOutput("create_pr", defaults.create_pr);
+              core.setOutput("base_ref", pull.data.base.ref);
+              core.setOutput("target_mode", "base");
+              core.setOutput("head_repo", headRepo);
+              return;
+            }
+
+            core.setOutput("task", payload);
+            core.setOutput("model", defaults.model);
+            core.setOutput("effort", defaults.effort);
+            core.setOutput("create_pr", defaults.create_pr);
+            core.setOutput("base_ref", pull.data.head.ref);
+            core.setOutput("target_mode", "head");
+            core.setOutput("head_repo", headRepo || baseRepo);
+            core.setOutput("mode", "implement");
+            core.setOutput("reason", "");
+            core.setOutput("pr_number", String(context.issue.number));
+
+      - name: Dispatch AI Codex implementation workflow
+        if: ${{ steps.parse.outputs.mode == 'implement' }}
+        uses: actions/github-script@v8
+        with:
+          script: |
+            await github.rest.actions.createWorkflowDispatch({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              workflow_id: "ai-codex-dispatch.yml",
+              ref: "main",
+              inputs: {
+                task: `${{ steps.parse.outputs.task }}`,
+                base_ref: `${{ steps.parse.outputs.base_ref }}`,
+                model: `${{ steps.parse.outputs.model }}`,
+                effort: `${{ steps.parse.outputs.effort }}`,
+                create_pr: `${{ steps.parse.outputs.create_pr }}`,
+              },
+            });
+
+      - name: Dispatch AI Codex fix-ci workflow
+        if: ${{ steps.parse.outputs.mode == 'fix-ci' }}
+        uses: actions/github-script@v8
+        with:
+          script: |
+            await github.rest.actions.createWorkflowDispatch({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              workflow_id: "ai-codex-fix-ci.yml",
+              ref: "main",
+              inputs: {
+                pr_number: `${{ steps.parse.outputs.pr_number }}`,
+                reason: `${{ steps.parse.outputs.reason }}`,
+                model: `${{ steps.parse.outputs.model }}`,
+                effort: `${{ steps.parse.outputs.effort }}`,
+              },
+            });
+
+      - name: Acknowledge implement command
+        if: ${{ steps.parse.outputs.mode == 'implement' }}
+        uses: actions/github-script@v8
+        with:
+          script: |
+            const task = `${{ steps.parse.outputs.task }}`;
+            const model = `${{ steps.parse.outputs.model }}`;
+            const effort = `${{ steps.parse.outputs.effort }}`;
+            const createPr = `${{ steps.parse.outputs.create_pr }}`;
+            const mode = `${{ steps.parse.outputs.target_mode }}`;
+            const baseRef = `${{ steps.parse.outputs.base_ref }}`;
+            const headRepo = `${{ steps.parse.outputs.head_repo }}`;
+            const modeDetail = mode === "head"
+              ? `- target: PR head branch \`${baseRef}\``
+              : `- target: PR base branch \`${baseRef}\` (fork PR detected: \`${headRepo}\`)`;
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              body: [
+                "Codex task dispatched.",
+                "",
+                `- task: ${task}`,
+                `- model: ${model}`,
+                `- effort: ${effort}`,
+                `- create_pr: ${createPr}`,
+                modeDetail,
+              ].join("\n"),
+            });
+
+      - name: Acknowledge fix-ci command
+        if: ${{ steps.parse.outputs.mode == 'fix-ci' }}
+        uses: actions/github-script@v8
+        with:
+          script: |
+            const reason = `${{ steps.parse.outputs.reason }}`;
+            const model = `${{ steps.parse.outputs.model }}`;
+            const effort = `${{ steps.parse.outputs.effort }}`;
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              body: [
+                "Codex fix-ci task dispatched.",
+                "",
+                `- model: ${model}`,
+                `- effort: ${effort}`,
+                `- reason: ${reason}`,
+              ].join("\n"),
+            });

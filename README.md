@@ -53,6 +53,8 @@ This repository includes an AI-first runtime for agentic development:
 - Agent operating docs: `docs/ai/ai-operating-model.md`
 - AI guardrail checks: `pnpm run ai:guard`
 - AI context pack generator: `pnpm run ai:task-pack -- --task \"<task>\"`
+- AI workflow trigger from terminal: `pnpm run ai:dispatch -- --task "<task>"`
+- AI CI fix trigger from terminal: `pnpm run ai:fix-ci -- --pr-number <number>`
 
 ### AI Workflows (GitHub Actions)
 
@@ -61,6 +63,13 @@ This repository includes an AI-first runtime for agentic development:
   - Optional repository variable `AI_AUTO_REVIEW=true` enables auto-run for all PRs.
 - `AI Codex Dispatch`: `.github/workflows/ai-codex-dispatch.yml`
   - Manually dispatch a coding task and optionally create a PR.
+- `AI Codex Command`: `.github/workflows/ai-codex-command.yml`
+  - Trigger dispatch by commenting on a PR with `/codex <task>`.
+  - Optional flags: `--model=<model> --effort=<low|medium|high|xhigh> --create-pr=<true|false>`.
+- `AI Codex Auto-Fix CI`: `.github/workflows/ai-codex-autofix-ci.yml`
+  - When `CI` fails on AI-managed PRs, attempts an automated fix PR.
+- `AI Codex Fix CI`: `.github/workflows/ai-codex-fix-ci.yml`
+  - Manual CI fix dispatch for a specific PR.
 
 Required secrets:
 
@@ -93,6 +102,8 @@ AI-specific commands:
 ```bash
 pnpm run ai:guard
 pnpm run ai:task-pack -- --task "implement bookings waitlist use case"
+pnpm run ai:dispatch -- --task "implement patients module" --effort high
+pnpm run ai:fix-ci -- --pr-number 123 --reason "quality job failed"
 ```
 
 ### API Quality Gates

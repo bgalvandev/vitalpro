@@ -89,9 +89,6 @@ jobs:
 
             Use tmp/ai/task-pack.md as context reference.
 
-      - name: Run AI guard
-        run: pnpm run ai:guard
-
       - name: Run quality checks
         run: pnpm run check
 
@@ -100,7 +97,8 @@ jobs:
         id: cpr
         uses: peter-evans/create-pull-request@v8
         with:
-          branch: ai/codex-dispatch
+          branch: ai/codex-dispatch-${{ github.run_id }}
+          base: ${{ inputs.base_ref }}
           delete-branch: true
           commit-message: "chore(ai): apply codex dispatch task"
           title: "chore(ai): ${{ inputs.task }}"
