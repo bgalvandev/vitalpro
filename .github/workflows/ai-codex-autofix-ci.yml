@@ -53,9 +53,14 @@ jobs:
               return;
             }
 
-            if (pr.data.head.ref.startsWith("ai/codex-autofix-")) {
+            const headRef = pr.data.head.ref || "";
+            const isAutoFixBranch = headRef.startsWith("ai/codex-autofix-");
+            const isFixCiBranch = headRef.startsWith("ai/codex-fix-ci-");
+            const isFixCiLabel = labels.includes("ci-fix");
+
+            if (isAutoFixBranch || isFixCiBranch || isFixCiLabel) {
               core.setOutput("enabled", "false");
-              core.setOutput("reason", "Skipping auto-fix loop on ai/codex-autofix-* branches.");
+              core.setOutput("reason", "Skipping auto-fix loop on codex auto-fix/fix-ci branches or ci-fix labels.");
               return;
             }
 
