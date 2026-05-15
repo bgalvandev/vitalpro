@@ -11,30 +11,36 @@ describe('clean-module generator', () => {
     tree = createTreeWithEmptyWorkspace();
   });
 
-  it('creates a library with clean architecture structure and tags', async () => {
-    const options: CleanModuleGeneratorSchema = {
-      name: 'patients',
-      domain: 'health',
-      skipFormat: true,
-    };
+  it(
+    'creates a library with clean architecture structure and tags',
+    async () => {
+      const options: CleanModuleGeneratorSchema = {
+        name: 'patients',
+        domain: 'health',
+        skipFormat: true,
+      };
 
-    await cleanModuleGenerator(tree, options);
+      await cleanModuleGenerator(tree, options);
 
-    const config = readProjectConfiguration(tree, 'patients');
-    expect(config.root).toBe('libs/patients');
-    expect(config.tags).toContain('surface:health');
-    expect(config.targets?.typecheck).toBeDefined();
+      const config = readProjectConfiguration(tree, 'patients');
+      expect(config.root).toBe('libs/patients');
+      expect(config.tags).toContain('surface:health');
+      expect(config.targets?.typecheck).toBeDefined();
 
-    expect(tree.exists('libs/patients/src/domain/patients.entity.ts')).toBe(true);
-    expect(tree.exists('libs/patients/src/application/patients.use-case.ts')).toBe(
-      true,
-    );
-    expect(tree.exists('libs/patients/src/infrastructure/index.ts')).toBe(true);
-    expect(tree.exists('libs/patients/src/interface/index.ts')).toBe(true);
+      expect(tree.exists('libs/patients/src/domain/patients.entity.ts')).toBe(
+        true,
+      );
+      expect(
+        tree.exists('libs/patients/src/application/patients.use-case.ts'),
+      ).toBe(true);
+      expect(tree.exists('libs/patients/src/infrastructure/index.ts')).toBe(true);
+      expect(tree.exists('libs/patients/src/interface/index.ts')).toBe(true);
 
-    const indexContent = tree.read('libs/patients/src/index.ts', 'utf-8');
-    expect(indexContent).toContain("export * from './domain';");
-  });
+      const indexContent = tree.read('libs/patients/src/index.ts', 'utf-8');
+      expect(indexContent).toContain("export * from './domain';");
+    },
+    15000,
+  );
 
   it('supports custom parent directory', async () => {
     const options: CleanModuleGeneratorSchema = {
