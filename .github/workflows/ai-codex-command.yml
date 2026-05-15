@@ -25,22 +25,41 @@ jobs:
         with:
           script: |
             const association = context.payload.comment.author_association;
-            const allowed = new Set(["OWNER", "MEMBER", "COLLABORATOR"]);
-            const authorized = allowed.has(association);
+            const username = context.payload.comment.user.login;
+
+            let permissionLevel = "none";
+            try {
+              const permissionResponse = await github.rest.repos.getCollaboratorPermissionLevel({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                username,
+              });
+              permissionLevel = permissionResponse.data.permission || "none";
+            } catch {
+              permissionLevel = "none";
+            }
+
+            const allowedPermissions = new Set(["write", "maintain", "admin"]);
+            const authorized = allowedPermissions.has(permissionLevel);
             core.setOutput("authorized", authorized ? "true" : "false");
             core.setOutput("association", association);
+            core.setOutput("permission", permissionLevel);
 
       - name: Reject unauthorized command
         if: ${{ steps.authorize.outputs.authorized != 'true' }}
         uses: actions/github-script@v8
+        env:
+          AUTHOR_ASSOCIATION: ${{ steps.authorize.outputs.association }}
+          AUTHOR_PERMISSION: ${{ steps.authorize.outputs.permission }}
         with:
           script: |
-            const association = `${{ steps.authorize.outputs.association }}`;
+            const association = process.env.AUTHOR_ASSOCIATION || "UNKNOWN";
+            const permission = process.env.AUTHOR_PERMISSION || "none";
             await github.rest.issues.createComment({
               owner: context.repo.owner,
               repo: context.repo.repo,
               issue_number: context.issue.number,
-              body: `Command rejected. Association \`${association}\` is not allowed to run \`/codex\`.`,
+              body: `Command rejected. Current permission \`${permission}\` (association: \`${association}\`) is not allowed to run \`/codex\`.`,
             });
             core.setFailed("Unauthorized /codex command.");
 
@@ -115,13 +134,16 @@ jobs:
             const isFork = headRepo && headRepo !== baseRepo;
 
             if (isFork) {
-              core.setOutput("task", payload);
+              core.setOutput("task", "");
               core.setOutput("model", defaults.model);
               core.setOutput("effort", defaults.effort);
               core.setOutput("create_pr", defaults.create_pr);
               core.setOutput("base_ref", pull.data.base.ref);
-              core.setOutput("target_mode", "base");
-              core.setOutput("head_repo", headRepo);
+              core.setOutput("target_mode", "fork");
+              core.setOutput("head_repo", headRepo || "");
+              core.setOutput("mode", "reject-fork");
+              core.setOutput("reason", "Command rejected on fork PR for security.");
+              core.setOutput("pr_number", String(context.issue.number));
               return;
             }
 
@@ -139,6 +161,12 @@ jobs:
       - name: Dispatch AI Codex implementation workflow
         if: ${{ steps.parse.outputs.mode == 'implement' }}
         uses: actions/github-script@v8
+        env:
+          DISPATCH_TASK: ${{ steps.parse.outputs.task }}
+          DISPATCH_BASE_REF: ${{ steps.parse.outputs.base_ref }}
+          DISPATCH_MODEL: ${{ steps.parse.outputs.model }}
+          DISPATCH_EFFORT: ${{ steps.parse.outputs.effort }}
+          DISPATCH_CREATE_PR: ${{ steps.parse.outputs.create_pr }}
         with:
           script: |
             await github.rest.actions.createWorkflowDispatch({
@@ -147,17 +175,22 @@ jobs:
               workflow_id: "ai-codex-dispatch.yml",
               ref: "main",
               inputs: {
-                task: `${{ steps.parse.outputs.task }}`,
-                base_ref: `${{ steps.parse.outputs.base_ref }}`,
-                model: `${{ steps.parse.outputs.model }}`,
-                effort: `${{ steps.parse.outputs.effort }}`,
-                create_pr: `${{ steps.parse.outputs.create_pr }}`,
+                task: process.env.DISPATCH_TASK,
+                base_ref: process.env.DISPATCH_BASE_REF,
+                model: process.env.DISPATCH_MODEL,
+                effort: process.env.DISPATCH_EFFORT,
+                create_pr: process.env.DISPATCH_CREATE_PR,
               },
             });
 
       - name: Dispatch AI Codex fix-ci workflow
         if: ${{ steps.parse.outputs.mode == 'fix-ci' }}
         uses: actions/github-script@v8
+        env:
+          FIX_PR_NUMBER: ${{ steps.parse.outputs.pr_number }}
+          FIX_REASON: ${{ steps.parse.outputs.reason }}
+          FIX_MODEL: ${{ steps.parse.outputs.model }}
+          FIX_EFFORT: ${{ steps.parse.outputs.effort }}
         with:
           script: |
             await github.rest.actions.createWorkflowDispatch({
@@ -166,25 +199,33 @@ jobs:
               workflow_id: "ai-codex-fix-ci.yml",
               ref: "main",
               inputs: {
-                pr_number: `${{ steps.parse.outputs.pr_number }}`,
-                reason: `${{ steps.parse.outputs.reason }}`,
-                model: `${{ steps.parse.outputs.model }}`,
-                effort: `${{ steps.parse.outputs.effort }}`,
+                pr_number: process.env.FIX_PR_NUMBER,
+                reason: process.env.FIX_REASON,
+                model: process.env.FIX_MODEL,
+                effort: process.env.FIX_EFFORT,
               },
             });
 
       - name: Acknowledge implement command
         if: ${{ steps.parse.outputs.mode == 'implement' }}
         uses: actions/github-script@v8
+        env:
+          ACK_TASK: ${{ steps.parse.outputs.task }}
+          ACK_MODEL: ${{ steps.parse.outputs.model }}
+          ACK_EFFORT: ${{ steps.parse.outputs.effort }}
+          ACK_CREATE_PR: ${{ steps.parse.outputs.create_pr }}
+          ACK_TARGET_MODE: ${{ steps.parse.outputs.target_mode }}
+          ACK_BASE_REF: ${{ steps.parse.outputs.base_ref }}
+          ACK_HEAD_REPO: ${{ steps.parse.outputs.head_repo }}
         with:
           script: |
-            const task = `${{ steps.parse.outputs.task }}`;
-            const model = `${{ steps.parse.outputs.model }}`;
-            const effort = `${{ steps.parse.outputs.effort }}`;
-            const createPr = `${{ steps.parse.outputs.create_pr }}`;
-            const mode = `${{ steps.parse.outputs.target_mode }}`;
-            const baseRef = `${{ steps.parse.outputs.base_ref }}`;
-            const headRepo = `${{ steps.parse.outputs.head_repo }}`;
+            const task = process.env.ACK_TASK || "";
+            const model = process.env.ACK_MODEL || "";
+            const effort = process.env.ACK_EFFORT || "";
+            const createPr = process.env.ACK_CREATE_PR || "";
+            const mode = process.env.ACK_TARGET_MODE || "";
+            const baseRef = process.env.ACK_BASE_REF || "";
+            const headRepo = process.env.ACK_HEAD_REPO || "";
             const modeDetail = mode === "head"
               ? `- target: PR head branch \`${baseRef}\``
               : `- target: PR base branch \`${baseRef}\` (fork PR detected: \`${headRepo}\`)`;
@@ -206,11 +247,15 @@ jobs:
       - name: Acknowledge fix-ci command
         if: ${{ steps.parse.outputs.mode == 'fix-ci' }}
         uses: actions/github-script@v8
+        env:
+          ACK_FIX_REASON: ${{ steps.parse.outputs.reason }}
+          ACK_FIX_MODEL: ${{ steps.parse.outputs.model }}
+          ACK_FIX_EFFORT: ${{ steps.parse.outputs.effort }}
         with:
           script: |
-            const reason = `${{ steps.parse.outputs.reason }}`;
-            const model = `${{ steps.parse.outputs.model }}`;
-            const effort = `${{ steps.parse.outputs.effort }}`;
+            const reason = process.env.ACK_FIX_REASON || "";
+            const model = process.env.ACK_FIX_MODEL || "";
+            const effort = process.env.ACK_FIX_EFFORT || "";
             await github.rest.issues.createComment({
               owner: context.repo.owner,
               repo: context.repo.repo,
@@ -221,5 +266,25 @@ jobs:
                 `- model: ${model}`,
                 `- effort: ${effort}`,
                 `- reason: ${reason}`,
+              ].join("\n"),
+            });
+
+      - name: Reject fork PR command
+        if: ${{ steps.parse.outputs.mode == 'reject-fork' }}
+        uses: actions/github-script@v8
+        env:
+          FORK_REPO: ${{ steps.parse.outputs.head_repo }}
+        with:
+          script: |
+            const forkRepo = process.env.FORK_REPO || "unknown";
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              body: [
+                "Command rejected.",
+                "",
+                `- reason: fork PRs are not eligible for /codex execution`,
+                `- head repository: ${forkRepo}`,
               ].join("\n"),
             });
