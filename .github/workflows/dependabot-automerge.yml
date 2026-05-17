@@ -1,0 +1,120 @@
+name: Dependabot Auto-Merge
+
+on:
+  workflow_run:
+    workflows:
+      - CI
+    types:
+      - completed
+
+permissions:
+  contents: write
+  pull-requests: write
+
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: "true"
+
+jobs:
+  merge-minor-and-patch:
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Evaluate and merge Dependabot PR
+        uses: actions/github-script@v8
+        with:
+          script: |
+            const workflowRun = context.payload.workflow_run;
+            if (workflowRun.event !== "pull_request") {
+              core.info("Skipping: successful run is not associated with pull_request.");
+              return;
+            }
+
+            const [linkedPr] = workflowRun.pull_requests || [];
+            if (!linkedPr) {
+              core.info("Skipping: no linked pull request.");
+              return;
+            }
+
+            const { owner, repo } = context.repo;
+            const prNumber = linkedPr.number;
+            const pr = await github.rest.pulls.get({
+              owner,
+              repo,
+              pull_number: prNumber,
+            });
+
+            if (pr.data.state !== "open") {
+              core.info(`Skipping: PR #${prNumber} is not open.`);
+              return;
+            }
+
+            if (pr.data.user?.login !== "dependabot[bot]") {
+              core.info(`Skipping: PR #${prNumber} author is not dependabot[bot].`);
+              return;
+            }
+
+            const title = pr.data.title || "";
+            const match = title.match(/ from ([^ ]+) to ([^ ]+)/i);
+            if (!match) {
+              core.info(`Skipping: unable to parse semver range from title "${title}".`);
+              return;
+            }
+
+            function parseSemver(value) {
+              const normalized = String(value).replace(/^[^\d]*/, "");
+              const semverMatch = normalized.match(/^(\d+)\.(\d+)\.(\d+)/);
+              if (!semverMatch) return null;
+              return {
+                major: Number(semverMatch[1]),
+                minor: Number(semverMatch[2]),
+                patch: Number(semverMatch[3]),
+              };
+            }
+
+            const fromVersion = parseSemver(match[1]);
+            const toVersion = parseSemver(match[2]);
+            if (!fromVersion || !toVersion) {
+              core.info(`Skipping: non-semver or unparsable update in "${title}".`);
+              return;
+            }
+
+            const isMajor = toVersion.major > fromVersion.major;
+            if (isMajor) {
+              await github.rest.issues.createComment({
+                owner,
+                repo,
+                issue_number: prNumber,
+                body: [
+                  "Major dependency update detected.",
+                  "",
+                  "- Auto-merge policy: disabled for major updates.",
+                  "- Action required: manual review and merge.",
+                ].join("\n"),
+              });
+              core.info(`PR #${prNumber} is a major update. Leaving for manual merge.`);
+              return;
+            }
+
+            try {
+              const result = await github.rest.pulls.merge({
+                owner,
+                repo,
+                pull_number: prNumber,
+                merge_method: "squash",
+                commit_title: title,
+              });
+              core.info(`Merged PR #${prNumber}: ${result.data.sha}`);
+            } catch (error) {
+              core.warning(`Failed to auto-merge PR #${prNumber}: ${error.message}`);
+              await github.rest.issues.createComment({
+                owner,
+                repo,
+                issue_number: prNumber,
+                body: [
+                  "Auto-merge attempt for this Dependabot minor/patch update failed.",
+                  "",
+                  `- Reason: ${error.message}`,
+                  "- Action required: manual review/merge.",
+                ].join("\n"),
+              });
+            }
