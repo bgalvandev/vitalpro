@@ -54,11 +54,8 @@ jobs:
             }
 
             const title = pr.data.title || "";
-            const match = title.match(/ from ([^ ]+) to ([^ ]+)/i);
-            if (!match) {
-              core.info(`Skipping: unable to parse semver range from title "${title}".`);
-              return;
-            }
+            const body = pr.data.body || "";
+            const isGroupedUpdate = /bump the .* group with \d+ updates/i.test(title);
 
             function parseSemver(value) {
               const normalized = String(value).replace(/^[^\d]*/, "");
@@ -71,28 +68,39 @@ jobs:
               };
             }
 
-            const fromVersion = parseSemver(match[1]);
-            const toVersion = parseSemver(match[2]);
-            if (!fromVersion || !toVersion) {
-              core.info(`Skipping: non-semver or unparsable update in "${title}".`);
-              return;
-            }
+            if (!isGroupedUpdate) {
+              const versionMatchFromTitle = title.match(/ from ([^ ]+) to ([^ ]+)/i);
+              const versionMatchFromBody = body.match(/ from ([^ ]+) to ([^ ]+)/i);
+              const versionMatch = versionMatchFromTitle || versionMatchFromBody;
 
-            const isMajor = toVersion.major > fromVersion.major;
-            if (isMajor) {
-              await github.rest.issues.createComment({
-                owner,
-                repo,
-                issue_number: prNumber,
-                body: [
-                  "Major dependency update detected.",
-                  "",
-                  "- Auto-merge policy: disabled for major updates.",
-                  "- Action required: manual review and merge.",
-                ].join("\n"),
-              });
-              core.info(`PR #${prNumber} is a major update. Leaving for manual merge.`);
-              return;
+              if (!versionMatch) {
+                core.info(`Skipping: unable to parse semver range from title/body for PR #${prNumber}.`);
+                return;
+              }
+
+              const fromVersion = parseSemver(versionMatch[1]);
+              const toVersion = parseSemver(versionMatch[2]);
+              if (!fromVersion || !toVersion) {
+                core.info(`Skipping: non-semver or unparsable update in PR #${prNumber}.`);
+                return;
+              }
+
+              const isMajor = toVersion.major > fromVersion.major;
+              if (isMajor) {
+                await github.rest.issues.createComment({
+                  owner,
+                  repo,
+                  issue_number: prNumber,
+                  body: [
+                    "Major dependency update detected.",
+                    "",
+                    "- Auto-merge policy: disabled for major updates.",
+                    "- Action required: manual review and merge.",
+                  ].join("\n"),
+                });
+                core.info(`PR #${prNumber} is a major update. Leaving for manual merge.`);
+                return;
+              }
             }
 
             try {
