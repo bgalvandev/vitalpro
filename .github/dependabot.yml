@@ -4,4 +4,27 @@ updates:
     directory: /
     schedule:
       interval: weekly
-    open-pull-requests-limit: 10
+    open-pull-requests-limit: 3
+    cooldown:
+      semver-major-days: 14
+      semver-minor-days: 5
+      semver-patch-days: 2
+    groups:
+      nx-stack:
+        applies-to: version-updates
+        patterns:
+          - "nx"
+          - "@nx/*"
+        update-types:
+          - minor
+          - patch
+      lint-stack:
+        applies-to: version-updates
+        patterns:
+          - "eslint"
+          - "@typescript-eslint/*"
+          - "@nx/eslint*"
+          - "jsonc-eslint-parser"
+        update-types:
+          - minor
+          - patch
