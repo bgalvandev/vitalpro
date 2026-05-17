@@ -121,6 +121,7 @@ jobs:
                 const retryable =
                   /required status check .* in progress/i.test(message) ||
                   /required status checks? are expected/i.test(message) ||
+                  /required status checks? have not succeeded: .* expected/i.test(message) ||
                   /base branch policy prohibits the merge/i.test(message) ||
                   /is not mergeable/i.test(message);
 
