@@ -29,7 +29,7 @@
     "typecheck:next": "pnpm --package=typescript@next dlx tsc -p tsconfig.json --noEmit"
   },
   "devDependencies": {
-    "@nx/eslint": "22.7.1",
+    "@nx/eslint": "22.7.2",
     "@nx/eslint-plugin": "22.7.1",
     "@nx/js": "22.7.1",
     "@nx/plugin": "22.7.1",
