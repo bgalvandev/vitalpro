@@ -103,26 +103,47 @@ jobs:
               }
             }
 
-            try {
-              const result = await github.rest.pulls.merge({
-                owner,
-                repo,
-                pull_number: prNumber,
-                merge_method: "squash",
-                commit_title: title,
-              });
-              core.info(`Merged PR #${prNumber}: ${result.data.sha}`);
-            } catch (error) {
-              core.warning(`Failed to auto-merge PR #${prNumber}: ${error.message}`);
-              await github.rest.issues.createComment({
-                owner,
-                repo,
-                issue_number: prNumber,
-                body: [
-                  "Auto-merge attempt for this Dependabot minor/patch update failed.",
-                  "",
-                  `- Reason: ${error.message}`,
-                  "- Action required: manual review/merge.",
-                ].join("\n"),
-              });
+            const maxAttempts = 12;
+            const retryDelayMs = 20000;
+            for (let attempt = 1; attempt <= maxAttempts; attempt += 1) {
+              try {
+                const result = await github.rest.pulls.merge({
+                  owner,
+                  repo,
+                  pull_number: prNumber,
+                  merge_method: "squash",
+                  commit_title: title,
+                });
+                core.info(`Merged PR #${prNumber}: ${result.data.sha}`);
+                return;
+              } catch (error) {
+                const message = error?.message || String(error);
+                const retryable =
+                  /required status check .* in progress/i.test(message) ||
+                  /required status checks? are expected/i.test(message) ||
+                  /base branch policy prohibits the merge/i.test(message) ||
+                  /is not mergeable/i.test(message);
+
+                if (retryable && attempt < maxAttempts) {
+                  core.warning(
+                    `Attempt ${attempt}/${maxAttempts} could not merge PR #${prNumber}: ${message}. Retrying in ${retryDelayMs / 1000}s...`,
+                  );
+                  await new Promise((resolve) => setTimeout(resolve, retryDelayMs));
+                  continue;
+                }
+
+                core.warning(`Failed to auto-merge PR #${prNumber}: ${message}`);
+                await github.rest.issues.createComment({
+                  owner,
+                  repo,
+                  issue_number: prNumber,
+                  body: [
+                    "Auto-merge attempt for this Dependabot minor/patch update failed.",
+                    "",
+                    `- Reason: ${message}`,
+                    "- Action required: manual review/merge.",
+                  ].join("\n"),
+                });
+                return;
+              }
             }
