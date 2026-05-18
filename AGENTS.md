@@ -138,6 +138,24 @@ The following operations require explicit written approval from a repository own
 2. Force push and branch deletion MUST stay disabled for protected branches.
 3. Protected branches MUST require pull requests and required status checks.
 
+### Pull Request Branch and Merge Strategy (Mandatory)
+Scope: repository-wide for all pull requests targeting protected branches.
+
+Rules:
+1. Contributors MUST create and switch to a non-protected working branch before the first code edit for a feature, fix, refactor, test, docs, build, ci, or chore change.
+2. Contributors MUST NOT commit those changes directly on `main` or release branches.
+3. Pull requests targeting protected branches MUST use squash merge.
+4. Merge commits for pull requests targeting protected branches MUST remain disabled in repository settings.
+5. The final squash commit subject on the protected branch MUST follow Conventional Commits and MUST include the pull request number suffix in the form `(#<number>)`.
+6. Pull request titles MUST be written so they can be used as the squash commit subject with no additional manual rewrite.
+7. After a pull request is merged, contributors MUST synchronize local `main` with `git pull --rebase origin main` before starting the next change.
+
+Verification:
+1. Reviewer checks the PR source branch is not `main` and not a release branch.
+2. Reviewer checks repository settings keep squash merge enabled and merge commits disabled for protected branches.
+3. Reviewer checks the merged commit on the protected branch follows Conventional Commits and includes `(#<number>)`.
+4. Reviewer checks post-merge synchronization evidence in task logs or command history when local continuation work is performed.
+
 ### Safety Checklist Before Risky Git Operations
 1. Run `git status` and confirm target branch.
 2. Create a backup ref before destructive history changes (for example `git branch backup/<date>-<name> HEAD`).
