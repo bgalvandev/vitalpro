@@ -79,7 +79,7 @@ Required secrets:
 
 ### Prerequisites
 
-- Node.js 22 LTS (see `.nvmrc`)
+- Node.js 24 LTS (see `.nvmrc`)
 - Corepack enabled (`corepack enable`)
 - pnpm version pinned by `packageManager` in `package.json`
 
