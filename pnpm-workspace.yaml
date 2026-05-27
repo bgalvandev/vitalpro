@@ -10,11 +10,15 @@ overrides:
   handlebars: 4.7.9
   node-forge: 1.4.0
   flatted: 3.4.2
-  qs: 6.14.2
+  qs: 6.15.2
   yaml: 2.8.4
   jose: 4.15.5
   underscore: 1.13.8
-  brace-expansion: 5.0.5
+  brace-expansion: 5.0.6
+  tmp: 0.2.6
+  uuid: 11.1.1
+  ws: 8.20.1
+  protobufjs: 7.5.8
 
 allowBuilds:
   '@swc/core': true
