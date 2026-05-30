@@ -6,9 +6,9 @@
   "main": "./src/index.js",
   "types": "./src/index.d.ts",
   "dependencies": {
-    "@nx/devkit": "22.7.3",
-    "@nx/js": "22.7.3",
-    "@nx/vite": "22.7.3",
+    "@nx/devkit": "22.7.5",
+    "@nx/js": "22.7.5",
+    "@nx/vite": "22.7.5",
     "vitest": "4.0.7"
   },
   "generators": "./generators.json"
