@@ -38,7 +38,7 @@
     "@nx/plugin": "22.7.5",
     "@nx/vite": "22.7.5",
     "@nx/vitest": "22.7.5",
-    "@pact-foundation/pact": "^16.4.0",
+    "@pact-foundation/pact": "^16.5.0",
     "@redocly/cli": "^2.31.1",
     "@swc-node/register": "~1.11.1",
     "@swc/cli": "~0.8.1",
