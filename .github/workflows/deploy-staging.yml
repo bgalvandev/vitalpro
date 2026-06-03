@@ -58,11 +58,19 @@ jobs:
             ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ env.IMAGE_TAG_SHA }}
             ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:staging
 
+      - name: Run staging migrations
+        run: |
+          docker run --rm \
+            -e DATABASE_URL="${{ secrets.STAGING_DATABASE_URL }}" \
+            "${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:staging" \
+            pnpm run prisma:migrate:deploy
+
       - name: Staging smoke check
         run: |
-          docker run -d --name core-api-staging --rm -p 3300:3000 -e CORE_API_USE_IN_MEMORY_APPOINTMENTS=true "${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:staging"
+          docker run -d --name core-api-staging --rm -p 3300:3000 -e DATABASE_URL="${{ secrets.STAGING_DATABASE_URL }}" "${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:staging"
           for i in $(seq 1 30); do
-            if curl -fsS -H "Authorization: Bearer local-test-token" http://127.0.0.1:3300/api/v1/appointments/apt-001 >/dev/null; then
+            status="$(curl -sS -o /dev/null -w "%{http_code}" -H "Authorization: Bearer local-test-token" http://127.0.0.1:3300/api/v1/appointments/deploy-smoke-missing || true)"
+            if [ "$status" = "404" ]; then
               exit 0
             fi
             sleep 1

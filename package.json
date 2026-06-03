@@ -15,6 +15,7 @@
     "postinstall": "pnpm run prisma:generate",
     "openapi:lint": "pnpm exec redocly lint",
     "test:integration:core-api": "NX_DAEMON=false NX_ISOLATE_PLUGINS=false pnpm nx run core-api:test:integration",
+    "test:integration:core-api:postgres": "node scripts/testing/run-core-api-postgres-smoke.mjs",
     "test:integration:testcontainers": "RUN_TESTCONTAINERS=true NX_DAEMON=false NX_ISOLATE_PLUGINS=false pnpm nx run-many -t test:testcontainers --projects=core-api,appointments",
     "postman:smoke": "node scripts/testing/run-core-api-postman-smoke.mjs",
     "arazzo:verify": "node scripts/contracts/verify-core-api-arazzo-workflows.mjs",

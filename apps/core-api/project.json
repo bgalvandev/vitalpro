@@ -50,6 +50,13 @@
         "command": "PORT=${PORT:-3300} NODE_ENV=development CORE_API_USE_IN_MEMORY_APPOINTMENTS=true node -r @swc-node/register apps/core-api/src/main.ts"
       }
     },
+    "serve:postgres:ci": {
+      "executor": "nx:run-commands",
+      "options": {
+        "cwd": ".",
+        "command": "PORT=${PORT:-3300} NODE_ENV=development node -r @swc-node/register apps/core-api/src/main.ts"
+      }
+    },
     "lint": {
       "executor": "@nx/eslint:lint",
       "outputs": ["{options.outputFile}"],

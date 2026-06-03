@@ -59,3 +59,6 @@ jobs:
 
       - name: Run API advanced checks
         run: pnpm run api:advanced:check
+
+      - name: Run DB-backed Core API smoke
+        run: pnpm run test:integration:core-api:postgres
