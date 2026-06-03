@@ -11,4 +11,13 @@ describe('AppointmentsEntity', () => {
     expect(entity.id).toBe('seed-id');
     expect(entity.status).toBe('scheduled');
   });
+
+  it('rejects an empty id', () => {
+    expect(() =>
+      AppointmentsEntity.create({
+        id: ' ',
+        status: 'scheduled',
+      }),
+    ).toThrow('Appointment id is required.');
+  });
 });

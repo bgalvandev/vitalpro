@@ -9,7 +9,7 @@ describe('PostgreSQL Testcontainers wiring', () => {
       return;
     }
 
-    const container = await new PostgreSqlContainer('postgres:16-alpine').start();
+    const container = await new PostgreSqlContainer('postgres:17-alpine').start();
     const client = new Client({
       host: container.getHost(),
       port: container.getPort(),

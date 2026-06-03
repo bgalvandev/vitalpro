@@ -37,6 +37,7 @@
     },
     "test:testcontainers": {
       "executor": "nx:run-commands",
+      "cache": false,
       "options": {
         "cwd": "apps/core-api",
         "command": "../../node_modules/.bin/vitest run --config vitest.testcontainers.config.ts"

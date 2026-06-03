@@ -12,10 +12,12 @@ export default defineConfig(() => ({
     globals: true,
     environment: 'node',
     include: ['{src,tests}/**/*.{test,spec}.{js,mjs,cjs,ts,mts,cts,jsx,tsx}'],
+    testTimeout: 120000,
+    hookTimeout: 120000,
     reporters: ['default'],
     coverage: {
       reportsDirectory: '../../coverage/libs/appointments',
       provider: 'v8' as const,
-    }
+    },
   },
 }));

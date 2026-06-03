@@ -1,0 +1,24 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model Appointment {
+  id        String            @id
+  status    AppointmentStatus
+  createdAt DateTime          @default(now()) @map("created_at")
+  updatedAt DateTime          @updatedAt @map("updated_at")
+
+  @@map("appointments")
+}
+
+enum AppointmentStatus {
+  scheduled
+  completed
+  cancelled
+
+  @@map("appointment_status")
+}

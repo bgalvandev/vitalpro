@@ -1,6 +1,7 @@
 import { EventEmitter } from 'node:events';
 
 import type express from 'express';
+import { InMemoryAppointmentRepository } from '@vitalpro/appointments';
 import httpMocks from 'node-mocks-http';
 import { describe, expect, it } from 'vitest';
 
@@ -47,7 +48,9 @@ async function invokeRequest(
 }
 
 describe('Core API integration', () => {
-  const app = createCoreApiApp();
+  const app = createCoreApiApp({
+    appointmentRepository: new InMemoryAppointmentRepository(),
+  });
 
   it('returns 401 when authorization header is missing', async () => {
     const response = await invokeRequest(

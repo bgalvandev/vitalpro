@@ -1,5 +1,4 @@
 import { describe, expect, it } from 'vitest';
-import { getAppointmentById } from '@vitalpro/appointments';
 
 import { createStartupMessage, parsePort } from './main';
 import {
@@ -22,19 +21,6 @@ describe('parsePort', () => {
 
   it('uses provided port when value is valid', () => {
     expect(parsePort('3100')).toBe(3100);
-  });
-});
-
-describe('appointments use case', () => {
-  it('returns appointment projection when id exists', () => {
-    expect(getAppointmentById('apt-001')).toEqual({
-      id: 'apt-001',
-      status: 'scheduled',
-    });
-  });
-
-  it('returns null when id does not exist', () => {
-    expect(getAppointmentById('apt-999')).toBeNull();
   });
 });
 

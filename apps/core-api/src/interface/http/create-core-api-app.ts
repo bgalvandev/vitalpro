@@ -1,7 +1,11 @@
 import fs from 'node:fs';
 import path from 'node:path';
 
-import { getAppointmentById } from '@vitalpro/appointments';
+import {
+  type AppointmentRepository,
+  getAppointmentById,
+  InMemoryAppointmentRepository,
+} from '@vitalpro/appointments';
 import express from 'express';
 import * as OpenApiValidator from 'express-openapi-validator';
 import type { NextFunction, Request, Response } from 'express';
@@ -62,8 +66,17 @@ export function isBearerAuthorizationValid(
   );
 }
 
-export function createCoreApiApp(): express.Express {
+export interface CoreApiAppOptions {
+  appointmentRepository?: AppointmentRepository;
+}
+
+export function createCoreApiApp(
+  options: CoreApiAppOptions = {},
+): express.Express {
   const app = express();
+  const appointmentRepository =
+    options.appointmentRepository ?? new InMemoryAppointmentRepository();
+
   app.disable('x-powered-by');
 
   app.use(express.json());
@@ -94,17 +107,27 @@ export function createCoreApiApp(): express.Express {
     }),
   );
 
-  app.get('/api/v1/appointments/:appointmentId', (req, res) => {
-    const appointment = getAppointmentById(req.params.appointmentId);
-    if (!appointment) {
-      return res.status(404).json({
-        code: 'not_found',
-        message: 'Appointment not found',
-      });
-    }
+  app.get(
+    '/api/v1/appointments/:appointmentId',
+    async (req, res, next) => {
+      try {
+        const appointment = await getAppointmentById(
+          req.params.appointmentId,
+          appointmentRepository,
+        );
+        if (!appointment) {
+          return res.status(404).json({
+            code: 'not_found',
+            message: 'Appointment not found',
+          });
+        }
 
-    return res.status(200).json(appointment);
-  });
+        return res.status(200).json(appointment);
+      } catch (error) {
+        return next(error);
+      }
+    },
+  );
 
   app.use(
     (
