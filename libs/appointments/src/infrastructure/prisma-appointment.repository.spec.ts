@@ -1,4 +1,4 @@
-import fs from 'node:fs';
+import { spawn } from 'node:child_process';
 import path from 'node:path';
 
 import { PrismaPg } from '@prisma/adapter-pg';
@@ -7,6 +7,25 @@ import { PostgreSqlContainer } from '@testcontainers/postgresql';
 import { describe, expect, it } from 'vitest';
 
 import { PrismaAppointmentRepository } from './prisma-appointment.repository';
+
+function runCommand(command: string, args: string[], options: { cwd: string; env: NodeJS.ProcessEnv }) {
+  return new Promise<void>((resolve, reject) => {
+    const child = spawn(command, args, {
+      stdio: 'inherit',
+      ...options,
+    });
+
+    child.on('error', reject);
+    child.on('exit', (code) => {
+      if (code === 0) {
+        resolve();
+        return;
+      }
+
+      reject(new Error(`${command} exited with code ${code}`));
+    });
+  });
+}
 
 describe('PrismaAppointmentRepository', () => {
   it('reads an appointment from PostgreSQL', async (context) => {
@@ -19,16 +38,16 @@ describe('PrismaAppointmentRepository', () => {
     const connectionString = container.getConnectionUri();
     const adapter = new PrismaPg({ connectionString });
     const prisma = new PrismaClient({ adapter });
-    const migrationSql = fs.readFileSync(
-      path.resolve(
-        process.cwd(),
-        '../../prisma/migrations/20260603000000_create_appointments/migration.sql',
-      ),
-      'utf8',
-    );
+    const workspaceRoot = path.resolve(process.cwd(), '../..');
 
     try {
-      await prisma.$executeRawUnsafe(migrationSql);
+      await runCommand('pnpm', ['run', 'prisma:migrate:deploy'], {
+        cwd: workspaceRoot,
+        env: {
+          ...process.env,
+          DATABASE_URL: connectionString,
+        },
+      });
       await prisma.appointment.create({
         data: {
           id: 'apt-001',
