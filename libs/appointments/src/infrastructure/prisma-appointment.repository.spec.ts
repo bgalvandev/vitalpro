@@ -1,3 +1,6 @@
+import fs from 'node:fs';
+import path from 'node:path';
+
 import { PrismaPg } from '@prisma/adapter-pg';
 import { PrismaClient } from '@prisma/client';
 import { PostgreSqlContainer } from '@testcontainers/postgresql';
@@ -16,20 +19,16 @@ describe('PrismaAppointmentRepository', () => {
     const connectionString = container.getConnectionUri();
     const adapter = new PrismaPg({ connectionString });
     const prisma = new PrismaClient({ adapter });
+    const migrationSql = fs.readFileSync(
+      path.resolve(
+        process.cwd(),
+        '../../prisma/migrations/20260603000000_create_appointments/migration.sql',
+      ),
+      'utf8',
+    );
 
     try {
-      await prisma.$executeRawUnsafe(
-        `CREATE TYPE "appointment_status" AS ENUM ('scheduled', 'completed', 'cancelled')`,
-      );
-      await prisma.$executeRawUnsafe(`
-        CREATE TABLE "appointments" (
-          "id" TEXT NOT NULL,
-          "status" "appointment_status" NOT NULL,
-          "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-          "updated_at" TIMESTAMP(3) NOT NULL,
-          CONSTRAINT "appointments_pkey" PRIMARY KEY ("id")
-        )
-      `);
+      await prisma.$executeRawUnsafe(migrationSql);
       await prisma.appointment.create({
         data: {
           id: 'apt-001',

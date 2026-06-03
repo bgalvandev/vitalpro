@@ -5,10 +5,10 @@ import {
 
 import { createPrismaClientFromEnvironment } from './prisma-client';
 
-export function createAppointmentRepository(): AppointmentRepository | null {
+export function createAppointmentRepository(): AppointmentRepository {
   const prisma = createPrismaClientFromEnvironment();
   if (!prisma) {
-    return null;
+    throw new Error('DATABASE_URL is required to start the Core API.');
   }
 
   return new PrismaAppointmentRepository(prisma);

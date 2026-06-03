@@ -4,7 +4,6 @@ import path from 'node:path';
 import {
   type AppointmentRepository,
   getAppointmentById,
-  InMemoryAppointmentRepository,
 } from '@vitalpro/appointments';
 import express from 'express';
 import * as OpenApiValidator from 'express-openapi-validator';
@@ -67,15 +66,12 @@ export function isBearerAuthorizationValid(
 }
 
 export interface CoreApiAppOptions {
-  appointmentRepository?: AppointmentRepository;
+  appointmentRepository: AppointmentRepository;
 }
 
-export function createCoreApiApp(
-  options: CoreApiAppOptions = {},
-): express.Express {
+export function createCoreApiApp(options: CoreApiAppOptions): express.Express {
   const app = express();
-  const appointmentRepository =
-    options.appointmentRepository ?? new InMemoryAppointmentRepository();
+  const { appointmentRepository } = options;
 
   app.disable('x-powered-by');
 
@@ -137,7 +133,8 @@ export function createCoreApiApp(
       _next: NextFunction,
     ) => {
       const status = err.status ?? 500;
-      const message = err.message ?? 'Internal server error';
+      const message =
+        status >= 500 ? 'Internal server error' : (err.message ?? 'Internal server error');
       const code = status === 401 ? 'unauthorized' : 'internal_error';
 
       if (status === 405 && req.path.startsWith('/api/v1/appointments/')) {

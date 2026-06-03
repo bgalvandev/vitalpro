@@ -37,6 +37,8 @@ export async function startCoreApiServer({
     stdio: ['ignore', 'pipe', 'pipe'],
     env: {
       ...process.env,
+      CORE_API_USE_IN_MEMORY_APPOINTMENTS:
+        process.env.CORE_API_USE_IN_MEMORY_APPOINTMENTS ?? 'true',
       NODE_ENV: 'development',
       PORT: String(port),
     },

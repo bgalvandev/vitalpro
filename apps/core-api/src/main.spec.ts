@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
-import { createStartupMessage, parsePort } from './main';
+import { createStartupMessage, parsePort, shouldUseInMemoryAppointments } from './main';
+import { AppointmentsEntity } from '@vitalpro/appointments';
 import {
   createCoreApiApp,
   isBearerAuthorizationValid,
@@ -21,6 +22,14 @@ describe('parsePort', () => {
 
   it('uses provided port when value is valid', () => {
     expect(parsePort('3100')).toBe(3100);
+  });
+});
+
+describe('shouldUseInMemoryAppointments', () => {
+  it('requires explicit true value', () => {
+    expect(shouldUseInMemoryAppointments('true')).toBe(true);
+    expect(shouldUseInMemoryAppointments('false')).toBe(false);
+    expect(shouldUseInMemoryAppointments(undefined)).toBe(false);
   });
 });
 
@@ -45,7 +54,16 @@ describe('runtime validation helpers', () => {
 
 describe('core api app', () => {
   it('creates express application instance', () => {
-    const app = createCoreApiApp();
+    const app = createCoreApiApp({
+      appointmentRepository: {
+        async findById(id) {
+          return AppointmentsEntity.create({
+            id,
+            status: 'scheduled',
+          });
+        },
+      },
+    });
     expect(app).toBeDefined();
   });
 });

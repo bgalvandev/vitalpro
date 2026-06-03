@@ -25,10 +25,19 @@ export function parsePort(value: string | undefined): number {
 
 let runtimeServer: Server | undefined;
 
+export function shouldUseInMemoryAppointments(value: string | undefined): boolean {
+  return value === 'true';
+}
+
 export async function bootstrap(): Promise<Server> {
+  const appointmentRepository = shouldUseInMemoryAppointments(
+    process.env.CORE_API_USE_IN_MEMORY_APPOINTMENTS,
+  )
+    ? new InMemoryAppointmentRepository()
+    : createAppointmentRepository();
+
   const app = createCoreApiApp({
-    appointmentRepository:
-      createAppointmentRepository() ?? new InMemoryAppointmentRepository(),
+    appointmentRepository,
   });
   const port = parsePort(process.env.PORT);
 
