@@ -77,23 +77,32 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Promote source image tag
-        id: promote
+      - name: Run production migrations
+        env:
+          DATABASE_URL: ${{ secrets.PRODUCTION_DATABASE_URL }}
         run: |
-          timestamp="$(date -u +%Y%m%d%H%M%S)"
-          source_ref="${{ needs.validate-image.outputs.source_ref }}"
-          docker buildx imagetools create \
-            -t "${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:production" \
-            -t "${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:prod-${timestamp}" \
-            "$source_ref"
-          echo "release_tag=prod-${timestamp}" >> "$GITHUB_OUTPUT"
+          if [ -z "$DATABASE_URL" ]; then
+            echo "PRODUCTION_DATABASE_URL secret is required." >&2
+            exit 1
+          fi
+          docker run --rm \
+            -e DATABASE_URL \
+            "${{ needs.validate-image.outputs.source_ref }}" \
+            pnpm run prisma:migrate:deploy
 
       - name: Production smoke check
         if: ${{ inputs.run_smoke_tests }}
+        env:
+          DATABASE_URL: ${{ secrets.PRODUCTION_DATABASE_URL }}
         run: |
-          docker run -d --name core-api-production --rm -p 3300:3000 "${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:production"
+          if [ -z "$DATABASE_URL" ]; then
+            echo "PRODUCTION_DATABASE_URL secret is required." >&2
+            exit 1
+          fi
+          docker run -d --name core-api-production --rm -p 3300:3000 -e DATABASE_URL "${{ needs.validate-image.outputs.source_ref }}"
           for i in $(seq 1 30); do
-            if curl -fsS -H "Authorization: Bearer local-test-token" http://127.0.0.1:3300/api/v1/appointments/apt-001 >/dev/null; then
+            status="$(curl -sS -o /dev/null -w "%{http_code}" -H "Authorization: Bearer local-test-token" http://127.0.0.1:3300/api/v1/appointments/deploy-smoke-missing || true)"
+            if [ "$status" = "404" ]; then
               exit 0
             fi
             sleep 1
@@ -104,3 +113,14 @@ jobs:
       - name: Stop production container
         if: ${{ always() && inputs.run_smoke_tests }}
         run: docker rm -f core-api-production || true
+
+      - name: Promote source image tag
+        id: promote
+        run: |
+          timestamp="$(date -u +%Y%m%d%H%M%S)"
+          source_ref="${{ needs.validate-image.outputs.source_ref }}"
+          docker buildx imagetools create \
+            -t "${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:production" \
+            -t "${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:prod-${timestamp}" \
+            "$source_ref"
+          echo "release_tag=prod-${timestamp}" >> "$GITHUB_OUTPUT"

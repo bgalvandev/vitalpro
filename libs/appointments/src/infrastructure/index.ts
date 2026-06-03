@@ -1,1 +1,2 @@
-// Add infrastructure adapters for appointments in this layer.
+export * from './in-memory-appointment.repository';
+export * from './prisma-appointment.repository';

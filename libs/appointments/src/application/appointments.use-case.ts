@@ -1,25 +1,33 @@
-import { type AppointmentStatus, AppointmentsEntity } from '../domain';
+import type { AppointmentStatus, AppointmentsEntity } from '../domain';
 
 export interface AppointmentResult {
   id: string;
   status: AppointmentStatus;
 }
 
-const APPOINTMENT_FIXTURES = new Map<string, AppointmentStatus>([
-  ['apt-001', 'scheduled'],
-  ['apt-002', 'completed'],
-  ['apt-003', 'cancelled'],
-]);
+export interface AppointmentRepository {
+  findById(id: string): Promise<AppointmentsEntity | null>;
+}
 
-export function getAppointmentById(id: string): AppointmentResult | null {
-  const status = APPOINTMENT_FIXTURES.get(id);
-  if (!status) {
-    return null;
+export class GetAppointmentByIdUseCase {
+  constructor(private readonly appointmentRepository: AppointmentRepository) {}
+
+  async execute(id: string): Promise<AppointmentResult | null> {
+    const appointment = await this.appointmentRepository.findById(id);
+    if (!appointment) {
+      return null;
+    }
+
+    return {
+      id: appointment.id,
+      status: appointment.status,
+    };
   }
+}
 
-  const appointment = AppointmentsEntity.create({ id, status });
-  return {
-    id: appointment.id,
-    status: appointment.status,
-  };
+export async function getAppointmentById(
+  id: string,
+  appointmentRepository: AppointmentRepository,
+): Promise<AppointmentResult | null> {
+  return new GetAppointmentByIdUseCase(appointmentRepository).execute(id);
 }

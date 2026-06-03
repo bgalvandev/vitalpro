@@ -1,6 +1,8 @@
 import { EventEmitter } from 'node:events';
 
 import type express from 'express';
+import type { AppointmentRepository } from '@vitalpro/appointments';
+import { AppointmentsEntity } from '@vitalpro/appointments';
 import httpMocks from 'node-mocks-http';
 import { describe, expect, it } from 'vitest';
 
@@ -47,7 +49,22 @@ async function invokeRequest(
 }
 
 describe('Core API integration', () => {
-  const app = createCoreApiApp();
+  const appointmentRepository: AppointmentRepository = {
+    async findById(id) {
+      if (id !== 'apt-001') {
+        return null;
+      }
+
+      return AppointmentsEntity.create({
+        id,
+        status: 'scheduled',
+      });
+    },
+  };
+
+  const app = createCoreApiApp({
+    appointmentRepository,
+  });
 
   it('returns 401 when authorization header is missing', async () => {
     const response = await invokeRequest(
@@ -90,6 +107,29 @@ describe('Core API integration', () => {
     expect(response.body).toEqual({
       code: 'not_found',
       message: 'Appointment not found',
+    });
+  });
+
+  it('returns sanitized 500 when the repository fails', async () => {
+    const throwingApp = createCoreApiApp({
+      appointmentRepository: {
+        async findById() {
+          throw new Error('database password leaked in driver message');
+        },
+      },
+    });
+
+    const response = await invokeRequest(
+      throwingApp,
+      'GET',
+      '/api/v1/appointments/apt-001',
+      'Bearer local-test-token',
+    );
+
+    expect(response.status).toBe(500);
+    expect(response.body).toEqual({
+      code: 'internal_error',
+      message: 'Internal server error',
     });
   });
 

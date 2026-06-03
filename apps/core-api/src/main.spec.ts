@@ -1,13 +1,25 @@
-import { describe, expect, it } from 'vitest';
-import { getAppointmentById } from '@vitalpro/appointments';
+import { afterEach, describe, expect, it } from 'vitest';
 
-import { createStartupMessage, parsePort } from './main';
+import { AppointmentsEntity } from '@vitalpro/appointments';
+
+import {
+  createAppointmentRepositoryRuntimeForEnvironment,
+  createStartupMessage,
+  parsePort,
+  shouldUseInMemoryAppointments,
+  shutdown,
+} from './main';
 import {
   createCoreApiApp,
   isBearerAuthorizationValid,
   loadAppointmentsOpenApiSpecForRuntime,
   resolveAppointmentsOpenApiPath,
 } from './interface/http/create-core-api-app';
+
+afterEach(async () => {
+  delete process.env.CORE_API_USE_IN_MEMORY_APPOINTMENTS;
+  await shutdown();
+});
 
 describe('createStartupMessage', () => {
   it('includes listening message', () => {
@@ -25,16 +37,31 @@ describe('parsePort', () => {
   });
 });
 
-describe('appointments use case', () => {
-  it('returns appointment projection when id exists', () => {
-    expect(getAppointmentById('apt-001')).toEqual({
+describe('shouldUseInMemoryAppointments', () => {
+  it('requires explicit true value', () => {
+    expect(shouldUseInMemoryAppointments('true')).toBe(true);
+    expect(shouldUseInMemoryAppointments('false')).toBe(false);
+    expect(shouldUseInMemoryAppointments(undefined)).toBe(false);
+  });
+});
+
+describe('createAppointmentRepositoryRuntimeForEnvironment', () => {
+  it('creates a disposable in-memory repository when explicitly enabled', async () => {
+    process.env.CORE_API_USE_IN_MEMORY_APPOINTMENTS = 'true';
+
+    const runtime = createAppointmentRepositoryRuntimeForEnvironment();
+
+    await expect(runtime.appointmentRepository.findById('apt-001')).resolves.toMatchObject({
       id: 'apt-001',
       status: 'scheduled',
     });
+    await expect(runtime.shutdown()).resolves.toBeUndefined();
   });
+});
 
-  it('returns null when id does not exist', () => {
-    expect(getAppointmentById('apt-999')).toBeNull();
+describe('shutdown', () => {
+  it('is safe when the API has not been started', async () => {
+    await expect(shutdown()).resolves.toBeUndefined();
   });
 });
 
@@ -59,7 +86,16 @@ describe('runtime validation helpers', () => {
 
 describe('core api app', () => {
   it('creates express application instance', () => {
-    const app = createCoreApiApp();
+    const app = createCoreApiApp({
+      appointmentRepository: {
+        async findById(id) {
+          return AppointmentsEntity.create({
+            id,
+            status: 'scheduled',
+          });
+        },
+      },
+    });
     expect(app).toBeDefined();
   });
 });

@@ -37,12 +37,20 @@
     },
     "test:testcontainers": {
       "executor": "nx:run-commands",
+      "cache": false,
       "options": {
         "cwd": "apps/core-api",
         "command": "../../node_modules/.bin/vitest run --config vitest.testcontainers.config.ts"
       }
     },
     "serve:ci": {
+      "executor": "nx:run-commands",
+      "options": {
+        "cwd": ".",
+        "command": "PORT=${PORT:-3300} NODE_ENV=development CORE_API_USE_IN_MEMORY_APPOINTMENTS=true node -r @swc-node/register apps/core-api/src/main.ts"
+      }
+    },
+    "serve:postgres:ci": {
       "executor": "nx:run-commands",
       "options": {
         "cwd": ".",

@@ -184,6 +184,22 @@ Create your local file by copying the template:
 cp .env.example .env
 ```
 
+Database setup:
+
+```bash
+pnpm run db:up
+pnpm run prisma:generate
+pnpm run db:migrate
+pnpm run db:seed
+```
+
+To recreate the local development database volume after a PostgreSQL major
+version change:
+
+```bash
+pnpm run db:reset:local
+```
+
 The workflows use `GITHUB_TOKEN` with `packages:write` for GHCR publication.
 
 ## Initial Projects
