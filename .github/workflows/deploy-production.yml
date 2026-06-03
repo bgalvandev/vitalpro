@@ -89,7 +89,6 @@ jobs:
           echo "release_tag=prod-${timestamp}" >> "$GITHUB_OUTPUT"
 
       - name: Run production migrations
-        if: ${{ inputs.run_smoke_tests }}
         run: |
           docker run --rm \
             -e DATABASE_URL="${{ secrets.PRODUCTION_DATABASE_URL }}" \
