@@ -110,6 +110,29 @@ describe('Core API integration', () => {
     });
   });
 
+  it('returns sanitized 500 when the repository fails', async () => {
+    const throwingApp = createCoreApiApp({
+      appointmentRepository: {
+        async findById() {
+          throw new Error('database password leaked in driver message');
+        },
+      },
+    });
+
+    const response = await invokeRequest(
+      throwingApp,
+      'GET',
+      '/api/v1/appointments/apt-001',
+      'Bearer local-test-token',
+    );
+
+    expect(response.status).toBe(500);
+    expect(response.body).toEqual({
+      code: 'internal_error',
+      message: 'Internal server error',
+    });
+  });
+
   it('returns 405 with allow header for unsupported methods', async () => {
     const response = await invokeRequest(
       app,
