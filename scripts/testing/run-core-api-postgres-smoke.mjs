@@ -57,6 +57,7 @@ async function expectJsonResponse(path, expectedStatus) {
 
 const container = await new PostgreSqlContainer('postgres:17-alpine').start();
 const databaseUrl = container.getConnectionUri();
+let appointmentRepositoryRuntime;
 let server;
 
 try {
@@ -76,10 +77,11 @@ try {
   process.env.DATABASE_URL = databaseUrl;
   process.env.NODE_ENV = 'development';
   const { createCoreApiApp } = require('../../apps/core-api/src/interface/http/create-core-api-app.ts');
-  const { createAppointmentRepository } = require('../../apps/core-api/src/infrastructure/persistence/create-appointment-repository.ts');
+  const { createAppointmentRepositoryRuntime } = require('../../apps/core-api/src/infrastructure/persistence/create-appointment-repository.ts');
+  appointmentRepositoryRuntime = createAppointmentRepositoryRuntime();
 
   const app = createCoreApiApp({
-    appointmentRepository: createAppointmentRepository(),
+    appointmentRepository: appointmentRepositoryRuntime.appointmentRepository,
   });
   server = await new Promise((resolve, reject) => {
     const listener = app.listen(0, '127.0.0.1', () => {
@@ -116,5 +118,14 @@ try {
 
     server.close(resolve);
   });
+  let shutdownError;
+  try {
+    await appointmentRepositoryRuntime?.shutdown();
+  } catch (error) {
+    shutdownError = error;
+  }
   await container.stop();
+  if (shutdownError) {
+    throw shutdownError;
+  }
 }
