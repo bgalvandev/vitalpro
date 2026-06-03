@@ -67,6 +67,12 @@ export function createCoreApiApp(): express.Express {
   app.disable('x-powered-by');
 
   app.use(express.json());
+  app.use('/api', (_req, res, next) => {
+    res.setHeader('Cache-Control', 'no-store');
+    res.setHeader('Pragma', 'no-cache');
+    res.setHeader('X-Content-Type-Options', 'nosniff');
+    next();
+  });
 
   app.use(
     OpenApiValidator.middleware({
@@ -107,21 +113,18 @@ export function createCoreApiApp(): express.Express {
       res: Response,
       _next: NextFunction,
     ) => {
-    const status = err.status ?? 500;
-    const message = err.message ?? 'Internal server error';
-    const code = status === 401 ? 'unauthorized' : 'internal_error';
+      const status = err.status ?? 500;
+      const message = err.message ?? 'Internal server error';
+      const code = status === 401 ? 'unauthorized' : 'internal_error';
 
-    if (
-      status === 405 &&
-      req.path.startsWith('/api/v1/appointments/')
-    ) {
-      res.setHeader('Allow', 'GET');
-    }
+      if (status === 405 && req.path.startsWith('/api/v1/appointments/')) {
+        res.setHeader('Allow', 'GET');
+      }
 
-    return res.status(status).json({
-      code,
-      message,
-    });
+      return res.status(status).json({
+        code,
+        message,
+      });
     },
   );
 

@@ -115,4 +115,30 @@ describe('Core API integration', () => {
 
     expect(response.headers['x-powered-by']).toBeUndefined();
   });
+
+  it('marks appointment responses as non-storable', async () => {
+    const response = await invokeRequest(
+      app,
+      'GET',
+      '/api/v1/appointments/apt-001',
+      'Bearer local-test-token',
+    );
+
+    expect(response.headers['cache-control']).toBe('no-store');
+    expect(response.headers.pragma).toBe('no-cache');
+    expect(response.headers['x-content-type-options']).toBe('nosniff');
+  });
+
+  it('marks appointment error responses as non-storable', async () => {
+    const response = await invokeRequest(
+      app,
+      'GET',
+      '/api/v1/appointments/apt-999',
+      'Bearer local-test-token',
+    );
+
+    expect(response.headers['cache-control']).toBe('no-store');
+    expect(response.headers.pragma).toBe('no-cache');
+    expect(response.headers['x-content-type-options']).toBe('nosniff');
+  });
 });
