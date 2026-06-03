@@ -161,6 +161,7 @@ jobs:
         with:
           format: openapi
           target: tmp/zap/appointments.openapi.yaml
+          rules_file_name: .zap/api-rules.tsv
           allow_issue_writing: true
 
       - name: Stop Core API

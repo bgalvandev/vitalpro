@@ -1,0 +1,3 @@
+# ZAP API scan rule configuration.
+# Format: rule-id<TAB>level<TAB>description
+100000	INFO	(Expected client-error probes against unavailable API paths during DAST)
