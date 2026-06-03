@@ -156,6 +156,21 @@ Verification:
 3. Reviewer checks the merged commit on the protected branch follows Conventional Commits and includes `(#<number>)`.
 4. Reviewer checks post-merge synchronization evidence in task logs or command history when local continuation work is performed.
 
+### Pull Request Merge Block Triage (Mandatory)
+Scope: repository-wide for pull requests targeting protected branches.
+
+Rules:
+1. When GitHub reports `Merging is blocked` while required status checks are passing, contributors MUST inspect branch protection requirements, unresolved review threads, and security/code-scanning conversations before adding corrective code.
+2. Contributors MUST treat unresolved review threads as potential merge blockers when branch protection requires conversation resolution.
+3. Contributors MUST fix true-positive security or code-scanning findings before resolving the related review thread.
+4. Contributors MUST resolve or dismiss false-positive security or code-scanning findings with written justification in the pull request thread or alert dismissal comment.
+5. Contributors MUST record the merge-block cause and resolution in the PR/task trail when the block was not caused by a failing status check.
+
+Verification:
+1. Reviewer checks that a PR blocked with passing checks includes evidence of review-thread and code-scanning triage.
+2. Reviewer checks each dismissed false-positive security or code-scanning finding includes written justification.
+3. Reviewer checks no unrelated code patches were added solely to clear an administrative merge block.
+
 ### Safety Checklist Before Risky Git Operations
 1. Run `git status` and confirm target branch.
 2. Create a backup ref before destructive history changes (for example `git branch backup/<date>-<name> HEAD`).
