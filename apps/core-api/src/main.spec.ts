@@ -1,13 +1,25 @@
-import { describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it } from 'vitest';
 
-import { createStartupMessage, parsePort, shouldUseInMemoryAppointments } from './main';
 import { AppointmentsEntity } from '@vitalpro/appointments';
+
+import {
+  createAppointmentRepositoryRuntimeForEnvironment,
+  createStartupMessage,
+  parsePort,
+  shouldUseInMemoryAppointments,
+  shutdown,
+} from './main';
 import {
   createCoreApiApp,
   isBearerAuthorizationValid,
   loadAppointmentsOpenApiSpecForRuntime,
   resolveAppointmentsOpenApiPath,
 } from './interface/http/create-core-api-app';
+
+afterEach(async () => {
+  delete process.env.CORE_API_USE_IN_MEMORY_APPOINTMENTS;
+  await shutdown();
+});
 
 describe('createStartupMessage', () => {
   it('includes listening message', () => {
@@ -30,6 +42,26 @@ describe('shouldUseInMemoryAppointments', () => {
     expect(shouldUseInMemoryAppointments('true')).toBe(true);
     expect(shouldUseInMemoryAppointments('false')).toBe(false);
     expect(shouldUseInMemoryAppointments(undefined)).toBe(false);
+  });
+});
+
+describe('createAppointmentRepositoryRuntimeForEnvironment', () => {
+  it('creates a disposable in-memory repository when explicitly enabled', async () => {
+    process.env.CORE_API_USE_IN_MEMORY_APPOINTMENTS = 'true';
+
+    const runtime = createAppointmentRepositoryRuntimeForEnvironment();
+
+    await expect(runtime.appointmentRepository.findById('apt-001')).resolves.toMatchObject({
+      id: 'apt-001',
+      status: 'scheduled',
+    });
+    await expect(runtime.shutdown()).resolves.toBeUndefined();
+  });
+});
+
+describe('shutdown', () => {
+  it('is safe when the API has not been started', async () => {
+    await expect(shutdown()).resolves.toBeUndefined();
   });
 });
 
