@@ -60,7 +60,7 @@ jobs:
 
       - name: Staging smoke check
         run: |
-          docker run -d --name core-api-staging --rm -p 3300:3000 "${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:staging"
+          docker run -d --name core-api-staging --rm -p 3300:3000 -e CORE_API_USE_IN_MEMORY_APPOINTMENTS=true "${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:staging"
           for i in $(seq 1 30); do
             if curl -fsS -H "Authorization: Bearer local-test-token" http://127.0.0.1:3300/api/v1/appointments/apt-001 >/dev/null; then
               exit 0
