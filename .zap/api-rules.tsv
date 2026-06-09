@@ -1,3 +1,4 @@
 # ZAP API scan rule configuration.
 # Format: rule-id<TAB>level<TAB>description
-100000	INFO	(Expected client-error probes against unavailable API paths during DAST)
+100000	IGNORE	(Expected client-error probes against unavailable API paths during DAST)
+10049	IGNORE	(Expected non-storable appointment responses because Core API sends Cache-Control: no-store)
