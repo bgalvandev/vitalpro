@@ -139,6 +139,7 @@ The following operations require explicit written approval from a repository own
 3. Protected branches MUST require pull requests and required status checks.
 4. Merge commits for pull requests targeting protected branches MUST stay disabled in repository settings.
 5. Squash merge for pull requests targeting protected branches MUST stay enabled in repository settings.
+6. Required status checks for protected branches MUST require branches to be up to date before merging.
 
 ### Pull Request Branch and Merge Strategy (Mandatory)
 Scope: repository-wide for all pull requests targeting protected branches.
@@ -155,6 +156,26 @@ Verification:
 2. Reviewer checks repository settings keep squash merge enabled and merge commits disabled for protected branches.
 3. Reviewer checks the merged commit on the protected branch follows Conventional Commits and includes `(#<number>)`.
 4. Reviewer checks post-merge synchronization evidence in task logs or command history when local continuation work is performed.
+
+### Pull Request Readiness and Check Visibility (Mandatory)
+Scope: repository-wide for all pull requests targeting protected branches.
+
+Rules:
+1. Contributors MUST run `git fetch origin` before creating a pull request, updating a pull request, or reporting a pull request as ready for review or merge.
+2. Contributors MUST confirm the pull request branch contains current `origin/main` before reporting readiness with `git merge-base --is-ancestor origin/main HEAD`.
+3. Contributors MUST update the pull request branch when `git merge-base --is-ancestor origin/main HEAD` fails.
+4. Contributors MUST inspect GitHub mergeability and checks before reporting readiness with `gh pr view <number> --json mergeStateStatus,statusCheckRollup,headRefName,baseRefName`.
+5. Contributors MUST NOT report a pull request as ready when `mergeStateStatus` is `DIRTY`.
+6. Contributors MUST re-query or wait when `mergeStateStatus` is `UNKNOWN`.
+7. Contributors MUST NOT report required checks as running when `statusCheckRollup` is `null`.
+8. Contributors MUST wait for required checks to appear as `QUEUED`, `IN_PROGRESS`, or `COMPLETED` before reporting that checks are running.
+9. Contributors MUST record the pull request URL, merge state, and required check names in the task trail when finishing pull request work.
+
+Verification:
+1. Reviewer runs `git fetch origin` and `git merge-base --is-ancestor origin/main HEAD` on the pull request branch.
+2. Reviewer runs `gh pr view <number> --json mergeStateStatus,statusCheckRollup,headRefName,baseRefName` and confirms the pull request is not `DIRTY`.
+3. Reviewer checks the task trail for the pull request URL, merge state, and required check names.
+4. Maintainer checks protected branch settings with `gh api repos/bgalvandev/vitalpro/branches/main/protection --jq '.required_status_checks.strict'` and confirms the value is `true`.
 
 ### Pull Request Merge Block Triage (Mandatory)
 Scope: repository-wide for pull requests targeting protected branches.
