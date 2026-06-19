@@ -326,6 +326,8 @@ Use this as a default template inside a project:
 - Owns adapters for persistence, messaging, storage, external APIs.
 - Maps persistence/network models to domain and back.
 - Must not leak persistence models to `application` or `interface`.
+- Uses Prisma Client as the default ORM adapter for normal relational persistence unless an ADR approves another ORM.
+- Keeps raw SQL, TypedSQL, query builders, and database-specific optimizations inside `infrastructure` adapters.
 
 ### interface
 - Owns controllers/handlers, request-response DTOs, validation wiring.
@@ -397,6 +399,34 @@ Verification:
 4. Reviewer checks ADR link when a non-Zod validator is introduced.
 5. Reviewer checks external API changes include OpenAPI updates under `contracts/openapi/**`.
 6. CI gate runs `pnpm nx affected -t lint,typecheck,test,build --base="$NX_BASE" --head="$NX_HEAD"` and MUST pass for affected projects.
+
+## API Query and Response Shape Standard (Mandatory)
+Scope: repository-wide for `src/**/interface/**`, `src/**/application/**`, `src/**/infrastructure/**`, `apps/**/src/**`, `libs/**/src/**`, and `contracts/openapi/**`.
+
+Rules:
+1. External API responses MUST be explicit response DTOs or documented OpenAPI schemas designed for the use case.
+2. External API responses MUST NOT expose Prisma models, ORM entities, persistence records, or unbounded domain object graphs.
+3. Collection endpoints MUST return list-oriented DTOs that contain only fields required by the collection use case.
+4. Detail endpoints MUST return detail-oriented DTOs separate from collection DTOs when additional fields are required.
+5. Collection endpoints MUST use pagination, cursoring, or an explicitly bounded result limit in the contract.
+6. Collection endpoints MUST document ordering semantics when pagination or cursoring is used.
+7. API field expansion MUST use documented view variants or allowlisted field masks in the interface contract.
+8. API field expansion MUST NOT accept arbitrary client-controlled ORM `select` or `include` structures.
+9. Prisma Client queries that serve API read paths MUST use explicit `select` or intentionally bounded `include` clauses.
+10. Prisma Client MUST be the default persistence query mechanism for normal CRUD, lookup, and bounded relational reads.
+11. Raw SQL, Prisma TypedSQL, or database-specific query adapters MAY be used for measured hot paths, complex reporting queries, database-native features, or query plans that Prisma cannot express efficiently.
+12. Raw SQL, Prisma TypedSQL, or database-specific query adapters MUST live behind an `infrastructure` adapter or repository port.
+13. Raw SQL, Prisma TypedSQL, or database-specific query adapters MUST include a code comment or test name that states the performance, query-plan, or feature reason.
+14. API changes that add response fields MUST update the OpenAPI contract in the same PR when the API is externally consumed.
+15. API changes that remove, rename, or broaden response fields MUST be treated as contract changes and evaluated for backwards compatibility.
+
+Verification:
+1. Reviewer checks changed interface handlers and DTO files for explicit response DTOs or OpenAPI schemas.
+2. Reviewer checks changed collection endpoints for pagination, ordering, and bounded response shape.
+3. Reviewer checks changed Prisma read queries for explicit `select` or intentionally bounded `include` clauses.
+4. Reviewer checks raw SQL, Prisma TypedSQL, and database-specific query adapters are confined to `infrastructure` and include the documented reason.
+5. Reviewer checks external API response shape changes are reflected under `contracts/openapi/**`.
+6. Interface contract tests check response bodies for the intended list or detail DTO shape.
 
 ## CI and Supply Chain Security Standard (Mandatory)
 Scope: repository-wide for `.github/workflows/**`, `.github/dependabot.yml`, and deployment workflows.
