@@ -8,6 +8,9 @@ Follow `AGENTS.md` as the mandatory engineering standard.
 - Do not leak ORM, persistence, transport, or framework objects into `domain`.
 - Keep all external side effects inside `infrastructure` adapters.
 - Keep API behavior and OpenAPI contracts synchronized in the same change.
+- Keep API responses explicit and purpose-specific; use bounded list DTOs and separate detail DTOs when needed.
+- Use Prisma Client as the default persistence query mechanism, with explicit `select` or bounded `include` clauses on API read paths.
+- Keep raw SQL, TypedSQL, and database-specific optimizations behind `infrastructure` adapters with a documented reason.
 
 ## Implementation workflow
 1. Identify the target project and layer.
