@@ -256,6 +256,18 @@ Rules:
 
 This standard is non-negotiable. PRs that violate it MUST be rejected.
 
+## Simplicity and Proportionality Standard (Mandatory)
+Scope: repository-wide for all code changes.
+
+Rules:
+1. Changes MUST use the smallest code path, module scope, and layer surface that satisfies the requirement while preserving repository architecture rules.
+2. Contributors MUST NOT introduce new abstractions, adapters, services, modules, shared utilities, or generators for speculative future reuse.
+3. Additional files MAY be added when they preserve Clean Architecture boundaries, isolate external side effects, or test changed behavior.
+
+Verification:
+1. Reviewer checks that new files and abstractions are directly required by the changed behavior.
+2. Reviewer checks that the solution does not add speculative structure unrelated to the current requirement.
+
 ## Minimum Module Template
 
 Use this as a default template inside a project:
