@@ -589,7 +589,7 @@ Default PR validation command pattern (adapt targets as needed):
 pnpm nx affected -t lint,typecheck,test,build --base="$NX_BASE" --head="$NX_HEAD"
 ```
 
-CI MUST set `NX_BASE` to the latest successful `main` commit in `main`.
+CI MUST set `NX_BASE` to the latest successful `main` commit and `NX_HEAD` to the current commit.
 
 ## Exceptions and ADRs
 Any exception to this document MUST include a short ADR with:
