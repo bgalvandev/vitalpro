@@ -75,7 +75,13 @@ android/local.properties
 .vercel/
 
 # AI / agent local config
-.claude/
+# Share team-owned Claude Code config (skills, agents, shared settings);
+# keep personal/machine-specific overrides local.
+.claude/*
+!.claude/skills/
+!.claude/agents/
+!.claude/settings.json
+.claude/settings.local.json
 .cursor/
 .aider*
 .agents/

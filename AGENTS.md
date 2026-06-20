@@ -460,6 +460,28 @@ Verification:
 2. Reviewer checks task or PR audit trail includes explicit human approval for destructive actions.
 3. Maintainer checks cloud-agent access configuration for sensitive repository exclusions or restrictions.
 
+## Claude Code Skills and Local Configuration Standard (Mandatory)
+Scope: repository-wide for `.claude/**`, `.gitignore` entries that match `.claude/`, and `CLAUDE.md`.
+
+Impact and intent:
+1. `AGENTS.md` and `CLAUDE.md` hold always-on standing instructions; Claude Code skills under `.claude/skills/**` hold on-demand, model-invocable procedures.
+2. A repeatable, verifiable procedure SHOULD be expressed as a skill rather than appended to `AGENTS.md`; deviation is acceptable for a rule that MUST apply on every turn, and the PR MUST state that justification.
+
+Rules:
+1. Team-owned Claude Code configuration MUST be version-controlled: `.claude/skills/**`, `.claude/agents/**`, and `.claude/settings.json` MUST be committed.
+2. Personal or machine-specific Claude Code configuration MUST NOT be committed; `.claude/settings.local.json` and equivalent local overrides MUST stay ignored by `.gitignore`.
+3. `.claude/settings.json` MUST NOT contain plaintext secrets or credentials; secrets MUST follow the CI and Supply Chain Security Standard.
+4. Every committed skill MUST be a `SKILL.md` file with `name` and `description` frontmatter, and the `description` MUST state when the skill applies.
+5. A committed skill that runs commands MUST declare `allowed-tools` scoped to the commands it needs and MUST NOT grant destructive Git operations listed in the Git Risk Controls section.
+6. A committed skill MUST NOT instruct behavior that relaxes or contradicts any rule in this `AGENTS.md`.
+7. `CLAUDE.md` MUST stay minimal and import `AGENTS.md`; skill-specific procedures MUST live in `.claude/skills/**`, not in `CLAUDE.md`.
+
+Verification:
+1. Reviewer checks `.gitignore` keeps `.claude/skills/`, `.claude/agents/`, and `.claude/settings.json` tracked while ignoring `.claude/settings.local.json`, confirmed with `git check-ignore -v .claude/settings.local.json` and `git ls-files .claude/`.
+2. Reviewer checks each changed `SKILL.md` includes `name` and `description`, and that command-running skills declare scoped `allowed-tools`.
+3. Reviewer scans `.claude/settings.json` and skill files for plaintext secrets and for instructions that contradict `AGENTS.md`.
+4. Reviewer confirms `CLAUDE.md` still imports `AGENTS.md` and contains no duplicated normative rules.
+
 ## FHIR Interoperability Standard (Mandatory)
 Scope: this standard applies only when a PR introduces or changes `VitalPro Health` FHIR interoperability behavior in `contracts/openapi/**`, `src/**/interface/**`, `src/**/application/**`, or `docs/interop/**`.
 
