@@ -460,27 +460,31 @@ Verification:
 2. Reviewer checks task or PR audit trail includes explicit human approval for destructive actions.
 3. Maintainer checks cloud-agent access configuration for sensitive repository exclusions or restrictions.
 
-## Claude Code Skills and Local Configuration Standard (Mandatory)
-Scope: repository-wide for `.claude/**`, `.gitignore` entries that match `.claude/`, and `CLAUDE.md`.
+## Agent Skills and Local Configuration Standard (Mandatory)
+Scope: repository-wide for `.agents/**`, `.claude/**`, `.gitignore` entries that match those paths, `CLAUDE.md`, and `CODEX.md`.
 
 Impact and intent:
-1. `AGENTS.md` and `CLAUDE.md` hold always-on standing instructions; Claude Code skills under `.claude/skills/**` hold on-demand, model-invocable procedures.
-2. A repeatable, verifiable procedure SHOULD be expressed as a skill rather than appended to `AGENTS.md`; deviation is acceptable for a rule that MUST apply on every turn, and the PR MUST state that justification.
+1. `AGENTS.md` (imported by `CLAUDE.md` and `CODEX.md`) holds always-on standing instructions; agent skills hold on-demand, model-invocable procedures in the open `SKILL.md` format.
+2. A repeatable, verifiable procedure SHOULD be expressed as a skill rather than appended to `AGENTS.md`. A rule that needs to apply on every turn MAY instead stay in `AGENTS.md`. The PR MUST state the justification when a procedure stays in `AGENTS.md`.
 
 Rules:
-1. Team-owned Claude Code configuration MUST be version-controlled: `.claude/skills/**`, `.claude/agents/**`, and `.claude/settings.json` MUST be committed.
-2. Personal or machine-specific Claude Code configuration MUST NOT be committed; `.claude/settings.local.json` and equivalent local overrides MUST stay ignored by `.gitignore`.
-3. `.claude/settings.json` MUST NOT contain plaintext secrets or credentials; secrets MUST follow the CI and Supply Chain Security Standard.
-4. Every committed skill MUST be a `SKILL.md` file with `name` and `description` frontmatter, and the `description` MUST state when the skill applies.
-5. A committed skill that runs commands MUST declare `allowed-tools` scoped to the commands it needs and MUST NOT grant destructive Git operations listed in the Git Risk Controls section.
-6. A committed skill MUST NOT instruct behavior that relaxes or contradicts any rule in this `AGENTS.md`.
-7. `CLAUDE.md` MUST stay minimal and import `AGENTS.md`; skill-specific procedures MUST live in `.claude/skills/**`, not in `CLAUDE.md`.
+1. Canonical skills MUST live under `.agents/skills/**` as `SKILL.md` files so tool-agnostic agents such as OpenAI Codex discover them.
+2. Claude Code discovery MUST be provided by a `.claude/skills` symlink targeting `.agents/skills`; skill files MUST NOT be duplicated across the two paths.
+3. Team-owned skill and configuration files MUST be version-controlled: `.agents/skills/**`, the `.claude/skills` symlink, `.claude/agents/**`, and `.claude/settings.json` MUST be committed.
+4. Personal or machine-specific configuration MUST NOT be committed; `.claude/settings.local.json` and equivalent local overrides MUST stay ignored by `.gitignore`.
+5. `.claude/settings.json` MUST NOT contain plaintext secrets or credentials; secrets MUST follow the CI and Supply Chain Security Standard.
+6. Every committed skill MUST be a `SKILL.md` file with `name` and `description` frontmatter, and the `description` MUST state when the skill applies.
+7. A committed skill that runs commands SHOULD declare `allowed-tools` scoped to the commands it needs. A skill MUST NOT rely on `allowed-tools` to block destructive Git operations listed in the Git Risk Controls section, because not every agent honors that field. The PR MUST state when a skill omits `allowed-tools`.
+8. A committed skill MUST NOT instruct behavior that relaxes or contradicts any rule in this `AGENTS.md`.
+9. `CLAUDE.md` MUST stay minimal and import `AGENTS.md`, and `CODEX.md` MUST import `AGENTS.md`.
+10. `CLAUDE.md` and `CODEX.md` MUST NOT duplicate normative rules from `AGENTS.md`; skill-specific procedures MUST live under `.agents/skills/**`, not in those files.
 
 Verification:
-1. Reviewer checks `.gitignore` keeps `.claude/skills/`, `.claude/agents/`, and `.claude/settings.json` tracked while ignoring `.claude/settings.local.json`, confirmed with `git check-ignore -v .claude/settings.local.json` and `git ls-files .claude/`.
-2. Reviewer checks each changed `SKILL.md` includes `name` and `description`, and that command-running skills declare scoped `allowed-tools`.
-3. Reviewer scans `.claude/settings.json` and skill files for plaintext secrets and for instructions that contradict `AGENTS.md`.
-4. Reviewer confirms `CLAUDE.md` still imports `AGENTS.md` and contains no duplicated normative rules.
+1. Reviewer confirms `.claude/skills` is a symlink to `.agents/skills` with `readlink .claude/skills`, and that no `SKILL.md` is duplicated outside `.agents/skills/**`.
+2. Reviewer checks `.gitignore` keeps `.agents/skills/`, the `.claude/skills` symlink, `.claude/agents/`, and `.claude/settings.json` tracked while ignoring `.claude/settings.local.json`, confirmed with `git ls-files .agents/skills .claude` and `git check-ignore -v .claude/settings.local.json`.
+3. Reviewer checks each changed `SKILL.md` includes `name` and `description`, and that command-running skills declare scoped `allowed-tools`.
+4. Reviewer scans `.claude/settings.json` and skill files for plaintext secrets and for instructions that contradict `AGENTS.md`.
+5. Reviewer confirms `CLAUDE.md` and `CODEX.md` import `AGENTS.md` and contain no duplicated normative rules.
 
 ## FHIR Interoperability Standard (Mandatory)
 Scope: this standard applies only when a PR introduces or changes `VitalPro Health` FHIR interoperability behavior in `contracts/openapi/**`, `src/**/interface/**`, `src/**/application/**`, or `docs/interop/**`.
@@ -585,7 +589,7 @@ Default PR validation command pattern (adapt targets as needed):
 pnpm nx affected -t lint,typecheck,test,build --base="$NX_BASE" --head="$NX_HEAD"
 ```
 
-CI MUST set `NX_BASE` to the latest successful `main` commit in `main`.
+CI MUST set `NX_BASE` to the latest successful `main` commit and `NX_HEAD` to the current commit.
 
 ## Exceptions and ADRs
 Any exception to this document MUST include a short ADR with:
