@@ -465,7 +465,7 @@ Scope: repository-wide for `.agents/**`, `.claude/**`, `.gitignore` entries that
 
 Impact and intent:
 1. `AGENTS.md` (imported by `CLAUDE.md` and `CODEX.md`) holds always-on standing instructions; agent skills hold on-demand, model-invocable procedures in the open `SKILL.md` format.
-2. A repeatable, verifiable procedure SHOULD be expressed as a skill rather than appended to `AGENTS.md`; deviation is acceptable for a rule that MUST apply on every turn, and the PR MUST state that justification.
+2. A repeatable, verifiable procedure SHOULD be expressed as a skill rather than appended to `AGENTS.md`. A rule that needs to apply on every turn MAY instead stay in `AGENTS.md`. The PR MUST state the justification when a procedure stays in `AGENTS.md`.
 
 Rules:
 1. Canonical skills MUST live under `.agents/skills/**` as `SKILL.md` files so tool-agnostic agents such as OpenAI Codex discover them.
@@ -474,7 +474,7 @@ Rules:
 4. Personal or machine-specific configuration MUST NOT be committed; `.claude/settings.local.json` and equivalent local overrides MUST stay ignored by `.gitignore`.
 5. `.claude/settings.json` MUST NOT contain plaintext secrets or credentials; secrets MUST follow the CI and Supply Chain Security Standard.
 6. Every committed skill MUST be a `SKILL.md` file with `name` and `description` frontmatter, and the `description` MUST state when the skill applies.
-7. A committed skill that runs commands SHOULD declare `allowed-tools` scoped to the commands it needs; because `allowed-tools` is not honored by every agent, a skill MUST NOT rely on it to block destructive Git operations listed in the Git Risk Controls section, and the PR MUST state when a skill omits `allowed-tools`.
+7. A committed skill that runs commands SHOULD declare `allowed-tools` scoped to the commands it needs. A skill MUST NOT rely on `allowed-tools` to block destructive Git operations listed in the Git Risk Controls section, because not every agent honors that field. The PR MUST state when a skill omits `allowed-tools`.
 8. A committed skill MUST NOT instruct behavior that relaxes or contradicts any rule in this `AGENTS.md`.
 9. `CLAUDE.md` MUST stay minimal and import `AGENTS.md`, and `CODEX.md` MUST import `AGENTS.md`.
 10. `CLAUDE.md` and `CODEX.md` MUST NOT duplicate normative rules from `AGENTS.md`; skill-specific procedures MUST live under `.agents/skills/**`, not in those files.
