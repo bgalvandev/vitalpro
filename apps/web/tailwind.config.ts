@@ -3,9 +3,11 @@ import type { Config } from 'tailwindcss';
 
 /**
  * VitalPro Core — web design tokens.
- * Direction: a calm, precise clinical operations console. Teal/ink brand with
- * content-driven status hues; times are rendered in a tabular mono face so the
- * day schedule reads like an instrument panel rather than a generic card list.
+ * Direction: a calm, precise appointment operations console for service
+ * businesses across verticals. Teal/ink brand with content-driven status hues;
+ * times are rendered
+ * in a tabular mono face so the day schedule reads like an instrument panel
+ * rather than a generic card list.
  */
 const config: Config = {
   // Absolute glob so class detection is independent of the build CWD.

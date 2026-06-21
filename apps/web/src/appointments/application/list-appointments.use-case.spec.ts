@@ -44,4 +44,16 @@ describe('ListAppointmentsUseCase', () => {
     ).execute();
     expect(result).toEqual([]);
   });
+
+  it('propagates errors from the reader port', async () => {
+    class FailingReader implements AppointmentReader {
+      async listForDay(): Promise<Appointment[]> {
+        throw new Error('reader unavailable');
+      }
+    }
+
+    await expect(
+      new ListAppointmentsUseCase(new FailingReader()).execute()
+    ).rejects.toThrow('reader unavailable');
+  });
 });

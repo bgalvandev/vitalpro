@@ -7,7 +7,7 @@ export function AppointmentItem({ appointment }: { appointment: Appointment }) {
   const dimmed = !isActionable(appointment);
   return (
     <li className="flex gap-4">
-      {/* Time rail: tabular mono timestamps form the day's vertical spine. */}
+      {/* Time rail: tabular mono timestamps form the day schedule's spine. */}
       <div className="flex flex-col items-center pt-1">
         <time
           dateTime={appointment.startsAt.toISOString()}

@@ -1,11 +1,13 @@
 import { z } from 'zod';
 
 /**
- * Boundary schema for the appointments API response (the network model).
- * `id` and `status` map to the published OpenAPI `Appointment` schema
- * (contracts/openapi/core/appointments.openapi.yaml). The display fields
- * belong to the planned appointments collection contract and are validated
- * here, at the infrastructure boundary, before mapping to the domain.
+ * Schema for the data the appointments UI consumes, validated at the
+ * infrastructure boundary before mapping to the domain. This is NOT a
+ * published API contract: only `id` and `status` align with the published
+ * OpenAPI `Appointment` schema (contracts/openapi/core/appointments.openapi.yaml);
+ * the display fields are view-only. If a real collection endpoint is added,
+ * define its contract under contracts/openapi/** and reconcile this schema
+ * with it in the same change.
  */
 export const appointmentStatusDtoSchema = z.enum([
   'scheduled',
