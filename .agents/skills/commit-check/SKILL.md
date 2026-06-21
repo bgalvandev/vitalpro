@@ -1,6 +1,7 @@
 ---
 name: commit-check
 description: Validate a change against VitalPro commit and branch standards before committing — not on a protected branch, Conventional Commits header, Nx-aligned scope, and no authorship trailers. Use before running git commit, or when drafting a commit or squash-merge subject.
+argument-hint: "[proposed commit subject]"
 allowed-tools: Bash(git branch *) Bash(git status *) Bash(git diff *) Bash(git log *)
 ---
 

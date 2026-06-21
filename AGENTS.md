@@ -353,7 +353,7 @@ Verification:
 1. Reviewer checks changed modules and confirms each one is classified as Core or Health in the PR description.
 2. Reviewer checks import direction in changed files and rejects any Core dependency on Health.
 3. Reviewer checks FHIR-specific artifacts and PR evidence are justified as Health interoperability work.
-4. CI gate runs `pnpm nx affected -t lint,typecheck,test,build --base="$NX_BASE" --head="$NX_HEAD"` and MUST pass for affected projects.
+4. CI gate runs the affected validation command defined in "CI Execution Guidance" and MUST pass for affected projects.
 
 ## Stack Baseline (2026)
 Use this default unless an ADR approves an exception.
@@ -398,7 +398,7 @@ Verification:
 3. Reviewer checks boundary validators use Zod schemas in DTO/interface entry points.
 4. Reviewer checks ADR link when a non-Zod validator is introduced.
 5. Reviewer checks external API changes include OpenAPI updates under `contracts/openapi/**`.
-6. CI gate runs `pnpm nx affected -t lint,typecheck,test,build --base="$NX_BASE" --head="$NX_HEAD"` and MUST pass for affected projects.
+6. CI gate runs the affected validation command defined in "CI Execution Guidance" and MUST pass for affected projects.
 
 ## API Query and Response Shape Standard (Mandatory)
 Scope: repository-wide for `src/**/interface/**`, `src/**/application/**`, `src/**/infrastructure/**`, `apps/**/src/**`, `libs/**/src/**`, and `contracts/openapi/**`.
@@ -461,10 +461,10 @@ Verification:
 3. Maintainer checks cloud-agent access configuration for sensitive repository exclusions or restrictions.
 
 ## Agent Skills and Local Configuration Standard (Mandatory)
-Scope: repository-wide for `.agents/**`, `.claude/**`, `.gitignore` entries that match those paths, `CLAUDE.md`, and `CODEX.md`.
+Scope: repository-wide for `.agents/**`, `.claude/**`, `.gitignore` entries that match those paths, and `CLAUDE.md`.
 
 Impact and intent:
-1. `AGENTS.md` (imported by `CLAUDE.md` and `CODEX.md`) holds always-on standing instructions; agent skills hold on-demand, model-invocable procedures in the open `SKILL.md` format.
+1. `AGENTS.md` holds always-on standing instructions; agent skills hold on-demand, model-invocable procedures in the open `SKILL.md` format. `CLAUDE.md` imports `AGENTS.md`; tool-agnostic agents such as OpenAI Codex read `AGENTS.md` natively, so no per-tool entry file is required.
 2. A repeatable, verifiable procedure SHOULD be expressed as a skill rather than appended to `AGENTS.md`. A rule that needs to apply on every turn MAY instead stay in `AGENTS.md`. The PR MUST state the justification when a procedure stays in `AGENTS.md`.
 
 Rules:
@@ -476,15 +476,15 @@ Rules:
 6. Every committed skill MUST be a `SKILL.md` file with `name` and `description` frontmatter, and the `description` MUST state when the skill applies.
 7. A committed skill that runs commands SHOULD declare `allowed-tools` scoped to the commands it needs. A skill MUST NOT rely on `allowed-tools` to block destructive Git operations listed in the Git Risk Controls section, because not every agent honors that field. The PR MUST state when a skill omits `allowed-tools`.
 8. A committed skill MUST NOT instruct behavior that relaxes or contradicts any rule in this `AGENTS.md`.
-9. `CLAUDE.md` MUST stay minimal and import `AGENTS.md`, and `CODEX.md` MUST import `AGENTS.md`.
-10. `CLAUDE.md` and `CODEX.md` MUST NOT duplicate normative rules from `AGENTS.md`; skill-specific procedures MUST live under `.agents/skills/**`, not in those files.
+9. `CLAUDE.md` MUST stay minimal and import `AGENTS.md`. If a per-tool entry file (for example `CODEX.md`) is added, it MUST import or defer to `AGENTS.md` rather than restate its rules.
+10. `CLAUDE.md` and any per-tool entry file MUST NOT duplicate normative rules from `AGENTS.md`; skill-specific procedures MUST live under `.agents/skills/**`, not in those files.
 
 Verification:
 1. Reviewer confirms `.claude/skills` is a symlink to `.agents/skills` with `readlink .claude/skills`, and that no `SKILL.md` is duplicated outside `.agents/skills/**`.
 2. Reviewer checks `.gitignore` keeps `.agents/skills/`, the `.claude/skills` symlink, `.claude/agents/`, and `.claude/settings.json` tracked while ignoring `.claude/settings.local.json`, confirmed with `git ls-files .agents/skills .claude` and `git check-ignore -v .claude/settings.local.json`.
 3. Reviewer checks each changed `SKILL.md` includes `name` and `description`, and that command-running skills declare scoped `allowed-tools`.
 4. Reviewer scans `.claude/settings.json` and skill files for plaintext secrets and for instructions that contradict `AGENTS.md`.
-5. Reviewer confirms `CLAUDE.md` and `CODEX.md` import `AGENTS.md` and contain no duplicated normative rules.
+5. Reviewer confirms `CLAUDE.md` (and any per-tool entry file, if present) import or defer to `AGENTS.md` and contain no duplicated normative rules.
 
 ## FHIR Interoperability Standard (Mandatory)
 Scope: this standard applies only when a PR introduces or changes `VitalPro Health` FHIR interoperability behavior in `contracts/openapi/**`, `src/**/interface/**`, `src/**/application/**`, or `docs/interop/**`.
@@ -511,7 +511,7 @@ Verification:
 2. Reviewer checks `docs/interop/**` exists only after the first FHIR endpoint is introduced.
 3. Reviewer checks mapping evidence is present in `docs/interop/fhir-mapping.md` or PR description according to rule scope.
 4. Reviewer checks PR description contains the completed checklist, consulted official HL7 URL(s), and consultation date.
-5. CI gate runs `pnpm nx affected -t lint,typecheck,test,build --base="$NX_BASE" --head="$NX_HEAD"` and MUST pass for affected projects.
+5. CI gate runs the affected validation command defined in "CI Execution Guidance" and MUST pass for affected projects.
 
 ## Non-Negotiable Coding Rules
 1. No cross-layer shortcuts (`interface` or `infrastructure` cannot bypass `application` use cases).
@@ -583,6 +583,9 @@ For every feature or bugfix:
 8. Validate with affected Nx commands before merge.
 
 ## CI Execution Guidance
+This section is the single source of truth for the affected validation command referenced by
+verification gates throughout this document.
+
 Default PR validation command pattern (adapt targets as needed):
 
 ```bash

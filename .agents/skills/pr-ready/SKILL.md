@@ -15,28 +15,30 @@ creating a PR, updating one, or telling the user a PR is ready to merge. Do not 
 - `$0` (optional): the PR number. If omitted, derive it from the current branch with
   `gh pr view --json number` once a PR exists.
 
+## Pre-resolved remote state
+
+The following are resolved when this skill loads, so you start from current facts:
+
+- Current branch: !`git branch --show-current`
+- Fetch + ancestry vs `origin/main`: !`git fetch origin --quiet && (git merge-base --is-ancestor origin/main HEAD && echo "UP-TO-DATE" || echo "BEHIND — must update")`
+
+If the ancestry line reads `BEHIND`, the branch MUST be updated (rebase/merge `origin/main`)
+before you report readiness. Do not report a stale branch as ready.
+
 ## Steps
 
-1. Refresh remote state (required before reporting readiness):
-   ```bash
-   git fetch origin
-   ```
-2. Confirm the branch is not behind `origin/main`:
-   ```bash
-   git merge-base --is-ancestor origin/main HEAD && echo "UP-TO-DATE" || echo "BEHIND — must update"
-   ```
-   If it reports `BEHIND`, the branch MUST be updated (rebase/merge `origin/main`) before
-   you report readiness. Do not report a stale branch as ready.
-3. Inspect GitHub mergeability and checks:
+1. The fetch and ancestry check above already ran. If it reported `BEHIND`, stop and update
+   the branch first; re-run this skill afterward.
+2. Inspect GitHub mergeability and checks:
    ```bash
    gh pr view $0 --json mergeStateStatus,statusCheckRollup,headRefName,baseRefName
    ```
-4. Interpret the result strictly:
+3. Interpret the result strictly:
    - `mergeStateStatus == DIRTY` → NOT ready. Report the conflict; do not say it is ready.
    - `mergeStateStatus == UNKNOWN` → re-query or wait, then re-check. Do not conclude yet.
    - `statusCheckRollup == null` → required checks have NOT registered. Do not claim checks
      are running. Wait until checks appear as `QUEUED`, `IN_PROGRESS`, or `COMPLETED`.
-5. When reporting, record in the task trail: the PR URL, the merge state, and the names of
+4. When reporting, record in the task trail: the PR URL, the merge state, and the names of
    the required checks.
 
 ## Merge-block triage
