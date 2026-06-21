@@ -4,6 +4,9 @@ packages:
   - tools
 
 overrides:
+  '@types/react': 19.2.17
+  react: 19.2.7
+  react-dom: 19.2.7
   axios: 1.16.0
   follow-redirects: 1.16.0
   lodash: 4.18.1
@@ -29,13 +32,16 @@ overrides:
   undici: 7.28.0
 
 allowBuilds:
+  '@parcel/watcher': false
   '@prisma/engines': true
   '@swc/core': true
   core-js: true
   cpu-features: true
   esbuild: true
+  less: false
   nx: true
   prisma: true
   protobufjs: true
+  sharp: false
   ssh2: true
   unrs-resolver: true

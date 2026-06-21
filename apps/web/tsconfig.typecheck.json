@@ -1,0 +1,9 @@
+{
+  "extends": "./tsconfig.json",
+  "// reason": "Typechecks app sources only; excludes generated Next output so the target does not race with build regenerating .next/types.",
+  "exclude": [
+    "node_modules",
+    "**/.next/**",
+    "../../dist/**"
+  ]
+}
