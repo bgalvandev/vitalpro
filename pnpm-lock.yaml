@@ -95,8 +95,8 @@ importers:
         specifier: ~0.5.23
         version: 0.5.23
       '@testcontainers/postgresql':
-        specifier: ^11.14.0
-        version: 11.14.0
+        specifier: ^12.0.1
+        version: 12.0.1
       '@types/express':
         specifier: ^5.0.6
         version: 5.0.6
@@ -180,8 +180,8 @@ importers:
         specifier: ^7.8.0
         version: 7.8.0
       '@testcontainers/postgresql':
-        specifier: ^11.14.0
-        version: 11.14.0
+        specifier: ^12.0.1
+        version: 12.0.1
 
   libs/health-domain: {}
 
@@ -1972,8 +1972,8 @@ packages:
   '@swc/types@0.1.26':
     resolution: {integrity: sha512-lyMwd7WGgG79RS7EERZV3T8wMdmPq3xwyg+1nmAM64kIhx5yl+juO2PYIHb7vTiPgPCj8LYjsNV2T5wiQHUEaw==}
 
-  '@testcontainers/postgresql@11.14.0':
-    resolution: {integrity: sha512-wYbJn8GRTj8qfqzfVubxioYWlHJU/ImIjuzPwyy9C5Qfo6g3GLduPZAj+BifvqTZjgT3gd4gFVLCPhBji7dc1w==}
+  '@testcontainers/postgresql@12.0.1':
+    resolution: {integrity: sha512-6SyyduUM6lTAo4UwKG1aCochP6wTe0k7/W/m5uODZQMUrV3STk6/28Km3474JLGZdw/P793BUEF2IeU7rDyoEg==}
 
   '@tokenizer/inflate@0.4.1':
     resolution: {integrity: sha512-2mAv+8pkG6GIZiF1kNg1jAjh27IDxEPKwdGul3snfztFerfPGI1LjDezZp3i7BElXompqEtPmoPx6c2wgtWsOA==}
@@ -3112,6 +3112,10 @@ packages:
   dockerode@4.0.12:
     resolution: {integrity: sha512-/bCZd6KlGcjZO8Buqmi/vXuqEGVEZ0PNjx/biBNqJD3MhK9DmdiAuKxqfNhflgDESDIiBz3qF+0e55+CpnrUcw==}
     engines: {node: '>= 8.0'}
+
+  dockerode@5.0.0:
+    resolution: {integrity: sha512-C52mvJ+7lcyhWNfrzVfFsbTrBfy/ezE9FGEYLpu17FUeBcCkxERk9nN7uDl/478ynDiQ4U+5DbQC2vENHkVEtQ==}
+    engines: {node: '>= 14.17'}
 
   dotenv-expand@12.0.3:
     resolution: {integrity: sha512-uc47g4b+4k/M/SeaW1y4OApx+mtLWl92l5LMPP0GNXctZqELk+YGgOPIIC5elYmUH4OuoK3JLhuRUYegeySiFA==}
@@ -5265,6 +5269,9 @@ packages:
 
   testcontainers@11.14.0:
     resolution: {integrity: sha512-r9pniwv/iwzyHaI7gwAvAm4Y+IvjJg3vBWdjrUCaDMc2AXIr4jKbq7jJO18Mw2ybs73pZy1Aj7p/4RVBGMRWjg==}
+
+  testcontainers@12.0.3:
+    resolution: {integrity: sha512-6vfiL9CWIX0rWhTJitzrzHcv4Q/sUfUdBV12jMz6HZ58Lz6ZtXVecO6jljd1O3ookEWQHNICiYoYNEPpDLzuRw==}
 
   text-decoder@1.2.7:
     resolution: {integrity: sha512-vlLytXkeP4xvEq2otHeJfSQIRyWxo/oZGEbXrtEEF9Hnmrdly59sUbzZ/QgyWuLYHctCHxFF4tRQZNQ9k60ExQ==}
@@ -7704,9 +7711,9 @@ snapshots:
     dependencies:
       '@swc/counter': 0.1.3
 
-  '@testcontainers/postgresql@11.14.0':
+  '@testcontainers/postgresql@12.0.1':
     dependencies:
-      testcontainers: 11.14.0
+      testcontainers: 12.0.3
     transitivePeerDependencies:
       - bare-abort-controller
       - bare-buffer
@@ -8953,6 +8960,17 @@ snapshots:
       protobufjs: 7.6.3
       tar-fs: 2.1.4
       uuid: 11.1.1
+    transitivePeerDependencies:
+      - supports-color
+
+  dockerode@5.0.0:
+    dependencies:
+      '@balena/dockerignore': 1.0.2
+      '@grpc/grpc-js': 1.14.4
+      '@grpc/proto-loader': 0.7.15
+      docker-modem: 5.0.7
+      protobufjs: 7.6.3
+      tar-fs: 2.1.4
     transitivePeerDependencies:
       - supports-color
 
@@ -11523,6 +11541,29 @@ snapshots:
       debug: 4.4.3
       docker-compose: 1.4.2
       dockerode: 4.0.12
+      get-port: 7.2.0
+      proper-lockfile: 4.1.2
+      properties-reader: 3.0.1
+      ssh-remote-port-forward: 1.0.4
+      tar-fs: 3.1.2
+      tmp: 0.2.7
+      undici: 7.28.0
+    transitivePeerDependencies:
+      - bare-abort-controller
+      - bare-buffer
+      - react-native-b4a
+      - supports-color
+
+  testcontainers@12.0.3:
+    dependencies:
+      '@balena/dockerignore': 1.0.2
+      '@types/dockerode': 4.0.1
+      archiver: 7.0.1
+      async-lock: 1.4.1
+      byline: 5.0.0
+      debug: 4.4.3
+      docker-compose: 1.4.2
+      dockerode: 5.0.0
       get-port: 7.2.0
       proper-lockfile: 4.1.2
       properties-reader: 3.0.1
