@@ -32,8 +32,14 @@ jobs:
             echo "exists=false" >> "$GITHUB_OUTPUT"
           fi
 
-      - name: Detect breaking changes in appointments contract
+      # Advisory until the API is declared stable (v1.0): the contract has no
+      # external consumers yet, so intentional pre-1.0 breaking changes are
+      # expected. The step still reports breaks in the logs/annotations but does
+      # NOT block the merge. To re-enable blocking once the API is stable, remove
+      # `continue-on-error`. See docs/adr/0001-openapi-breaking-change-policy.md.
+      - name: Detect breaking changes in appointments contract (advisory)
         if: steps.base_contract.outputs.exists == 'true'
+        continue-on-error: true
         uses: oasdiff/oasdiff-action/breaking@v0.0.46
         with:
           base: "origin/${{ github.base_ref }}:contracts/openapi/core/appointments.openapi.yaml"
