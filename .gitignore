@@ -33,9 +33,10 @@ pnpm-debug.log*
 lerna-debug.log*
 
 # Env / secrets
+# Real env files are ignored; only committed templates (*.example) are tracked.
 .env
 .env.*
-!.env.example
+!.env.*.example
 *.pem
 *.key
 

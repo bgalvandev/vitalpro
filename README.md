@@ -45,35 +45,16 @@ Repository-level technical and governance standards are defined in `AGENTS.md`.
 
 ## AI Development Runtime
 
-This repository includes an AI-first runtime for agentic development:
+This repository is built to be worked on by AI coding agents. The runtime is
+tool-agnostic — there is no per-tool entry file duplicating the standards:
 
-- Copilot repository instructions: `.github/copilot-instructions.md`
-- Context-specific instruction files: `.github/instructions/*.instructions.md`
-- Agent task prompts: `.github/ai/prompts/*.md`
-- Agent operating docs: `docs/ai/ai-operating-model.md`
-- AI guardrail checks: `pnpm run ai:guard`
-- AI context pack generator: `pnpm run ai:task-pack -- --task \"<task>\"`
-- AI workflow trigger from terminal: `pnpm run ai:dispatch -- --task "<task>"`
-- AI CI fix trigger from terminal: `pnpm run ai:fix-ci -- --pr-number <number>`
-
-### AI Workflows (GitHub Actions)
-
-- `AI Codex PR Review`: `.github/workflows/ai-codex-review.yml`
-  - Add label `ai:review` on a pull request to trigger review.
-  - Optional repository variable `AI_AUTO_REVIEW=true` enables auto-run for all PRs.
-- `AI Codex Dispatch`: `.github/workflows/ai-codex-dispatch.yml`
-  - Manually dispatch a coding task and optionally create a PR.
-- `AI Codex Command`: `.github/workflows/ai-codex-command.yml`
-  - Trigger dispatch by commenting on a PR with `/codex <task>`.
-  - Optional flags: `--model=<model> --effort=<low|medium|high|xhigh> --create-pr=<true|false>`.
-- `AI Codex Auto-Fix CI`: `.github/workflows/ai-codex-autofix-ci.yml`
-  - When `CI` fails on AI-managed PRs, attempts an automated fix PR.
-- `AI Codex Fix CI`: `.github/workflows/ai-codex-fix-ci.yml`
-  - Manual CI fix dispatch for a specific PR.
-
-Required secrets:
-
-- `OPENAI_API_KEY` for Codex workflows.
+- Engineering standards (always-on): `AGENTS.md`, imported by `CLAUDE.md` and read
+  natively by Codex and other agents.
+- On-demand procedures: model-invocable skills under `.agents/skills/**`
+  (`.claude/skills` is a symlink so Claude Code discovers the same files).
+- Architecture guardrail: `pnpm run ai:guard` enforces Clean Architecture layer
+  boundaries inside each project. It is part of `pnpm check`.
+- Operating model: `docs/ai/ai-operating-model.md`.
 
 ## Workspace Bootstrap
 
@@ -89,65 +70,51 @@ Required secrets:
 pnpm install
 ```
 
+### Run the apps
+
+```bash
+pnpm db:up        # start local PostgreSQL (required by the API)
+pnpm dev:api      # run the Core API  (alias of: pnpm nx dev core-api)
+pnpm dev:web      # run the web app   (alias of: pnpm nx dev web)
+pnpm dev          # run every app at once (nx run-many -t dev)
+```
+
+The Core API fails fast at startup if `DATABASE_URL` or `CORE_API_SERVICE_TOKEN`
+is missing/invalid or PostgreSQL is unreachable. It requires that exact token as
+`Authorization: Bearer <token>` on `/api/*` (service-to-service auth) and exposes
+`/health` (liveness) and `/ready` (readiness, checks the database) without auth.
+
 ### Run Quality Gates
 
 ```bash
 pnpm check
 ```
 
-`pnpm check` already runs with `NX_DAEMON=false` and `NX_ISOLATE_PLUGINS=false` for local/CI consistency.
+The Nx daemon is disabled via `useDaemonProcess: false` in `nx.json` for local/CI consistency, so commands no longer need an `NX_DAEMON=false` prefix.
 
 AI-specific commands:
 
 ```bash
 pnpm run ai:guard
-pnpm run ai:task-pack -- --task "implement bookings waitlist use case"
-pnpm run ai:dispatch -- --task "implement patients module" --effort high
-pnpm run ai:fix-ci -- --pr-number 123 --reason "quality job failed"
 ```
 
 ### API Quality Gates
 
-Baseline contract checks:
+OpenAPI contract lint:
 
 ```bash
 pnpm run openapi:lint
 ```
 
-Advanced API checks (integration + Postman/Newman + Arazzo workflow verification + Pact provider verification):
+Tests run in three tiers (see `docs/api-testing-strategy.md` for details).
+Integration and e2e tiers need the database you bring up first:
 
 ```bash
-pnpm run api:advanced:check
+pnpm test                       # unit — hermetic, no database
+pnpm db:up && pnpm db:migrate   # provision the database for the tiers below
+pnpm test:integration           # integration — runs against DATABASE_URL
+pnpm test:e2e                   # end-to-end smoke — boots the API against DATABASE_URL
 ```
-
-Full advanced checks including Docker-backed Testcontainers:
-
-```bash
-pnpm run api:advanced:check:full
-```
-
-Workflow artifact checks (Arazzo structure):
-
-```bash
-pnpm run workflow:artifacts:check
-```
-
-Executable Arazzo workflow verification:
-
-```bash
-pnpm run arazzo:verify
-```
-
-Advanced scheduled/manual CI workflow:
-- `.github/workflows/api-advanced.yml`
-- includes Testcontainers integration, Schemathesis, ZAP API scan, and k6 thresholds.
-
-### API Workflow Artifacts
-
-The repository also includes machine-readable API workflow artifacts:
-
-- Arazzo workflows:
-  - `contracts/arazzo/core/appointments-retrieval.arazzo.yaml`
 
 ## Environment Strategy
 
@@ -171,17 +138,28 @@ Manual production promotion example:
 gh workflow run "Deploy Production" --field image_tag=sha-<commit-sha> --field run_smoke_tests=true
 ```
 
-Local runtime config remains simple:
+### Environment Files
 
-- Committed template:
-  - `.env.example`
-- Local file (ignored by git):
-  - `.env`
+Each runtime reads its own environment from its own location, mirroring how
+deployed services each receive only their own config. Committed templates are
+`*.example` and MUST NOT contain secrets; runtime files are git-ignored.
 
-Create your local file by copying the template:
+- `core-api` + Prisma CLI read the repo-root `.env` (`DATABASE_URL`, `PORT`,
+  `NODE_ENV`). Per-environment templates: `.env.local.example`,
+  `.env.staging.example`, `.env.production.example`.
+- The web app (Next.js) reads `apps/web/.env.local` (`CORE_API_URL`,
+  `CORE_API_TOKEN`) — Next loads env from the app directory, not the repo root.
+  Template: `apps/web/.env.local.example`.
+
+Real values for `staging`/`production` are injected at deploy time from GitHub
+Environment secrets (`STAGING_DATABASE_URL`, `PRODUCTION_DATABASE_URL`), not from
+committed files. Connection strings MUST NOT be hardcoded in scripts.
+
+Create your local files by copying the templates:
 
 ```bash
-cp .env.example .env
+cp .env.local.example .env
+cp apps/web/.env.local.example apps/web/.env.local
 ```
 
 Database setup:
@@ -202,12 +180,18 @@ pnpm run db:reset:local
 
 The workflows use `GITHUB_TOKEN` with `packages:write` for GHCR publication.
 
-## Initial Projects
+## Projects
 
-- `apps/core-api`: initial Core application scaffold.
-- `libs/health-domain`: initial Health domain library scaffold.
+- `apps/core-api`: Core REST API (Fastify + Zod + Prisma) exposing appointments.
+- `apps/web`: Core web app (Next.js + React + Tailwind).
+- `libs/appointments`: Core appointments module (Clean Architecture: domain/application/infrastructure/interface).
+- `tools`: local Nx generator (`@vitalpro/tools:clean-module`).
 
-Both projects currently expose `build`, `lint`, `typecheck`, and `test` Nx targets.
+Every project exposes `build`, `lint`, `typecheck`, and `test` Nx targets.
+
+The first `VitalPro Health` module is scaffolded on demand with the generator
+(`--domain=health`); no empty placeholder library is kept until a real Health
+use case exists.
 
 ## Module Scaffolding (No Manual Boilerplate)
 

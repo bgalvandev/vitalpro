@@ -386,11 +386,12 @@ Rules:
 4. External input boundaries MUST use Zod schemas by default.
 5. Any alternative to Zod MUST be approved by ADR before merge.
 6. Internal TypeScript-only APIs MAY use tRPC.
-7. APIs consumed by external clients MUST publish REST contracts in OpenAPI 3.2.x under `contracts/openapi/**`.
+7. APIs consumed by external clients MUST publish REST contracts in OpenAPI 3.1.x or 3.2.x under `contracts/openapi/**`.
 8. OpenAPI contracts MUST be versioned and updated in the same PR that changes the external API behavior.
+9. When the contract is generated from code-level schemas (for example Zod via `@fastify/swagger`), the generated artifact MUST be committed under `contracts/openapi/**` and regenerated in the same PR that changes API behavior.
 
 Acceptable deviation:
-1. OpenAPI 3.1.x is acceptable only when a required external integration cannot consume 3.2.x; the PR MUST include explicit compatibility justification and an ADR link.
+1. OpenAPI 3.2.x specific features MAY be used when no code-generation toolchain emits them; the PR MUST state why the contract is hand-authored instead of generated.
 
 Verification:
 1. Reviewer checks web projects for Tailwind configuration (`tailwind.config.*` and stylesheet integration).

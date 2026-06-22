@@ -21,14 +21,8 @@ This document defines how to maximize AI productivity in this repository while p
 - Relevant module files under `src/domain|application|infrastructure|interface`
 - Contract files under `contracts/openapi/**` when API behavior is involved
 
-Use:
-
-```bash
-pnpm run ai:task-pack -- --task "<task>"
-```
-
 ## Fast execution loop
-1. Prepare context pack.
+1. Gather the context above for the target module.
 2. Execute focused change.
 3. Run `pnpm run ai:guard`.
 4. Run project-specific tests.

@@ -1,131 +1,94 @@
+import 'dotenv/config';
+
 import { createRequire } from 'node:module';
-import { setTimeout as wait } from 'node:timers/promises';
 
-import { PostgreSqlContainer } from '@testcontainers/postgresql';
+import { PrismaPg } from '@prisma/adapter-pg';
+import { PrismaClient } from '@prisma/client';
 
-import { runCommand } from './core-api-runner.mjs';
+// End-to-end smoke: boots the real Core API (Fastify) against the PostgreSQL you
+// provision yourself (`pnpm db:up && pnpm db:migrate`) and exercises the HTTP
+// endpoints over a real socket. Fails fast if the database is unreachable —
+// provisioning services is the developer's/CI's responsibility.
+const connectionString = process.env.DATABASE_URL;
+if (!connectionString) {
+  throw new Error(
+    'DATABASE_URL is required for the Core API smoke. Run `pnpm db:up && pnpm db:migrate` first.',
+  );
+}
 
-const token = process.env.CORE_API_POSTGRES_SMOKE_TOKEN ?? 'local-test-token';
-let baseUrl;
+// The Core API accepts any well-formed Bearer token. The smoke seeds its own
+// namespaced row so it does not depend on `pnpm db:seed` and never touches app data.
+const token = 'local-test-token';
+const TEST_ID = 'apt-smoke-001';
+
 const require = createRequire(import.meta.url);
 require('@swc-node/register');
 
-async function waitForAppointment() {
-  const url = `${baseUrl}/api/v1/appointments/apt-001`;
-  const deadline = Date.now() + 20000;
-  let lastError = 'no response received';
-
-  while (Date.now() < deadline) {
-    try {
-      const response = await fetch(url, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
-
-      if (response.status === 200) {
-        return;
-      }
-
-      lastError = `${response.status}: ${await response.text()}`;
-    } catch {
-      lastError = 'connection refused';
-    }
-
-    await wait(250);
-  }
-
-  throw new Error(`Timed out waiting for Core API on ${url}; last response: ${lastError}`);
-}
-
-async function expectJsonResponse(path, expectedStatus) {
+async function getJson(baseUrl, path) {
   const response = await fetch(`${baseUrl}${path}`, {
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
+    headers: { Authorization: `Bearer ${token}` },
   });
-  const body = await response.json();
-
-  if (response.status !== expectedStatus) {
-    throw new Error(
-      `Expected ${expectedStatus} for ${path}, got ${response.status}: ${JSON.stringify(body)}`,
-    );
-  }
-
-  return body;
+  return { status: response.status, body: await response.json() };
 }
 
-const container = await new PostgreSqlContainer('postgres:17-alpine').start();
-const databaseUrl = container.getConnectionUri();
+const prisma = new PrismaClient({ adapter: new PrismaPg({ connectionString }) });
+let app;
 let appointmentRepositoryRuntime;
-let server;
 
 try {
-  await runCommand('pnpm', ['run', 'prisma:migrate:deploy'], {
-    env: {
-      ...process.env,
-      DATABASE_URL: databaseUrl,
-    },
-  });
-  await runCommand('pnpm', ['run', 'db:seed'], {
-    env: {
-      ...process.env,
-      DATABASE_URL: databaseUrl,
+  await prisma.appointment.deleteMany({ where: { id: TEST_ID } });
+  await prisma.appointment.create({
+    data: {
+      id: TEST_ID,
+      status: 'scheduled',
+      serviceName: 'Consultation call',
+      clientName: 'Mara Quispe',
+      startsAt: new Date('2026-06-22T08:40:00.000Z'),
+      durationMinutes: 30,
     },
   });
 
-  process.env.DATABASE_URL = databaseUrl;
-  process.env.NODE_ENV = 'development';
   const { createCoreApiApp } = require('../../apps/core-api/src/interface/http/create-core-api-app.ts');
   const { createAppointmentRepositoryRuntime } = require('../../apps/core-api/src/infrastructure/persistence/create-appointment-repository.ts');
-  appointmentRepositoryRuntime = createAppointmentRepositoryRuntime();
 
-  const app = createCoreApiApp({
+  appointmentRepositoryRuntime = createAppointmentRepositoryRuntime(connectionString);
+  app = await createCoreApiApp({
     appointmentRepository: appointmentRepositoryRuntime.appointmentRepository,
+    serviceToken: token,
   });
-  server = await new Promise((resolve, reject) => {
-    const listener = app.listen(0, '127.0.0.1', () => {
-      resolve(listener);
-    });
-    listener.on('error', reject);
-  });
-  const address = server.address();
-  if (!address || typeof address === 'string') {
-    throw new Error('Core API smoke server did not expose a TCP address.');
-  }
-  baseUrl = `http://127.0.0.1:${address.port}`;
 
-  await waitForAppointment();
+  const baseUrl = await app.listen({ port: 0, host: '127.0.0.1' });
 
-  const appointment = await expectJsonResponse(
-    '/api/v1/appointments/apt-001',
-    200,
-  );
-  if (appointment.id !== 'apt-001' || appointment.status !== 'scheduled') {
-    throw new Error(`Unexpected appointment payload: ${JSON.stringify(appointment)}`);
+  const found = await getJson(baseUrl, `/api/v1/appointments/${TEST_ID}`);
+  if (
+    found.status !== 200 ||
+    found.body.id !== TEST_ID ||
+    found.body.status !== 'scheduled' ||
+    found.body.serviceName !== 'Consultation call' ||
+    found.body.durationMinutes !== 30
+  ) {
+    throw new Error(`Unexpected appointment payload: ${found.status} ${JSON.stringify(found.body)}`);
   }
 
-  const missing = await expectJsonResponse('/api/v1/appointments/apt-999', 404);
-  if (missing.code !== 'not_found') {
-    throw new Error(`Unexpected missing appointment payload: ${JSON.stringify(missing)}`);
+  const list = await getJson(baseUrl, '/api/v1/appointments?limit=100');
+  const seeded = Array.isArray(list.body.items)
+    ? list.body.items.find((item) => item.id === TEST_ID)
+    : undefined;
+  if (list.status !== 200 || !seeded || seeded.clientName !== 'Mara Quispe') {
+    throw new Error(`Unexpected collection payload: ${list.status} ${JSON.stringify(list.body)}`);
   }
+
+  const missing = await getJson(baseUrl, '/api/v1/appointments/apt-smoke-missing');
+  if (missing.status !== 404 || missing.body.status !== 404 || missing.body.title !== 'Not Found') {
+    throw new Error(`Unexpected missing payload: ${missing.status} ${JSON.stringify(missing.body)}`);
+  }
+
+  console.log('Core API Postgres smoke passed.');
 } finally {
-  await new Promise((resolve) => {
-    if (!server) {
-      resolve();
-      return;
-    }
-
-    server.close(resolve);
-  });
-  let shutdownError;
-  try {
-    await appointmentRepositoryRuntime?.shutdown();
-  } catch (error) {
-    shutdownError = error;
+  if (app) {
+    await app.close();
   }
-  await container.stop();
-  if (shutdownError) {
-    throw shutdownError;
-  }
+  await appointmentRepositoryRuntime?.shutdown();
+  await prisma.appointment.deleteMany({ where: { id: TEST_ID } }).catch(() => {});
+  await prisma.$disconnect();
 }

@@ -35,26 +35,19 @@
         "command": "../../node_modules/.bin/vitest run --config vitest.integration.config.ts"
       }
     },
-    "test:testcontainers": {
+    "test:e2e": {
       "executor": "nx:run-commands",
       "cache": false,
       "options": {
-        "cwd": "apps/core-api",
-        "command": "../../node_modules/.bin/vitest run --config vitest.testcontainers.config.ts"
+        "cwd": ".",
+        "command": "node scripts/testing/run-core-api-postgres-smoke.mjs"
       }
     },
-    "serve:ci": {
+    "dev": {
       "executor": "nx:run-commands",
       "options": {
         "cwd": ".",
-        "command": "PORT=${PORT:-3300} NODE_ENV=development CORE_API_USE_IN_MEMORY_APPOINTMENTS=true node -r @swc-node/register apps/core-api/src/main.ts"
-      }
-    },
-    "serve:postgres:ci": {
-      "executor": "nx:run-commands",
-      "options": {
-        "cwd": ".",
-        "command": "PORT=${PORT:-3300} NODE_ENV=development node -r @swc-node/register apps/core-api/src/main.ts"
+        "command": "node --watch -r @swc-node/register apps/core-api/src/main.ts"
       }
     },
     "lint": {

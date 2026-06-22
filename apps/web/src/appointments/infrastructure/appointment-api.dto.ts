@@ -1,13 +1,11 @@
 import { z } from 'zod';
 
 /**
- * Schema for the data the appointments UI consumes, validated at the
- * infrastructure boundary before mapping to the domain. This is NOT a
- * published API contract: only `id` and `status` align with the published
- * OpenAPI `Appointment` schema (contracts/openapi/core/appointments.openapi.yaml);
- * the display fields are view-only. If a real collection endpoint is added,
- * define its contract under contracts/openapi/** and reconcile this schema
- * with it in the same change.
+ * Schemas for the appointments data the UI consumes, validated at the
+ * infrastructure boundary before mapping to the domain. These mirror the
+ * published core-api collection contract
+ * (contracts/openapi/core/appointments.openapi.yaml, operation `listAppointments`).
+ * Keep them reconciled with that contract in the same change.
  */
 export const appointmentStatusDtoSchema = z.enum([
   'scheduled',
@@ -24,6 +22,9 @@ export const appointmentDtoSchema = z.object({
   durationMinutes: z.number().int().positive(),
 });
 
-export const appointmentListDtoSchema = z.array(appointmentDtoSchema);
+export const appointmentListResponseSchema = z.object({
+  items: z.array(appointmentDtoSchema),
+  limit: z.number().int(),
+});
 
 export type AppointmentDto = z.infer<typeof appointmentDtoSchema>;

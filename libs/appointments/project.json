@@ -42,12 +42,12 @@
         "reportsDirectory": "coverage/libs/appointments"
       }
     },
-    "test:testcontainers": {
+    "test:integration": {
       "executor": "nx:run-commands",
       "cache": false,
       "options": {
         "cwd": "libs/appointments",
-        "command": "../../node_modules/.bin/vitest run --config vitest.config.mts"
+        "command": "../../node_modules/.bin/vitest run --config vitest.integration.config.mts"
       }
     },
     "typecheck": {

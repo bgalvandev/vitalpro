@@ -41,7 +41,7 @@ jobs:
         run: pnpm install --frozen-lockfile
 
       - name: Build
-        run: NX_DAEMON=false NX_ISOLATE_PLUGINS=false pnpm run build
+        run: pnpm run build
 
       - name: Perform CodeQL Analysis
         uses: github/codeql-action/analyze@v4

@@ -1,48 +1,52 @@
 # API Testing Strategy
 
-This repository uses layered API quality gates.
+This repository uses focused, proportionate API quality gates for the Core API.
 
-## Baseline gates (PR blocking)
+## Gates (PR blocking, `.github/workflows/ci.yml`)
 
-- OpenAPI contract is source-controlled under `contracts/openapi/**`.
+- Lint, typecheck, unit tests, and build for affected projects (`pnpm check`).
+- The API is built on **Fastify** with **Zod** schemas as the single source of
+  truth: Fastify validates requests/responses against them at runtime.
+- The OpenAPI contract is **generated from those Zod schemas** via
+  `@fastify/swagger` (`pnpm run openapi:generate`) and committed under
+  `contracts/openapi/**` — no hand-maintained spec, no version-normalization bridge.
 - OpenAPI linting runs through Redocly (`pnpm run openapi:lint`).
 - Breaking OpenAPI changes are checked in `.github/workflows/openapi-breaking.yml`.
-- Runtime request/response validation is enabled via `express-openapi-validator`.
-- Core CI runs lint, typecheck, test, and build in `.github/workflows/ci.yml`.
+- Errors follow **RFC 9457 Problem Details** (`application/problem+json`).
+- Clean Architecture boundary checks (`pnpm run ai:guard`).
 
-## Advanced gates
+## Test tiers
 
-- Integration tests for HTTP behavior (`pnpm run test:integration:core-api`).
-- Consumer smoke checks with Postman/Newman (`pnpm run postman:smoke`).
-- Executable Arazzo workflow checks with Redocly Respect (`pnpm run arazzo:verify`).
-- Provider verification with Pact (`pnpm run pact:verify`).
-- Docker-backed integration validation with Testcontainers (`pnpm run test:integration:testcontainers`).
-- Scheduled/manual deep checks in `.github/workflows/api-advanced.yml`:
-  - Schemathesis
-  - OWASP ZAP API scan
-  - k6 performance thresholds
+Three tiers, each a generic root script that Nx orchestrates across the projects
+that declare the matching target (no project names hardcoded in root scripts):
 
-## Practical limitation
+```bash
+pnpm test              # unit — hermetic, no I/O (nx run-many -t test)
+pnpm test:integration  # integration — needs the database (nx run-many -t test:integration)
+pnpm test:e2e          # end-to-end smoke (nx run-many -t test:e2e)
+```
 
-No stack can guarantee zero defects. The goal is fast defect detection and contract drift prevention across CI, runtime validation, and external black-box checks.
+Unit tests never touch I/O. Integration and e2e tests run against the PostgreSQL
+you provision yourself — bring it up first with `pnpm db:up && pnpm db:migrate`.
+They read `DATABASE_URL` and fail fast if the database is unreachable; provisioning
+services is the developer's/CI's responsibility (no auto-provisioning, no skip gates).
+
+What each tier covers today:
+
+- `core-api:test:integration` — HTTP behavior of the Core API using an in-memory
+  fake repository (no database needed).
+- `appointments:test:integration` — the Prisma appointment repository adapter
+  against the real PostgreSQL at `DATABASE_URL`.
+- `core-api:test:e2e` — end-to-end smoke: boots the API against the real PostgreSQL
+  at `DATABASE_URL` and exercises the HTTP endpoints.
 
 ## OpenAPI version policy
 
-- Source contract uses OpenAPI 3.2.0.
-- Runtime validation currently relies on `express-openapi-validator`, which supports OpenAPI 3.0.x/3.1.x.
-- Runtime validation normalizes the loaded 3.2.0 contract to 3.1.2 in-memory before middleware registration.
-- The bridge keeps external contract semantics at 3.2.0 while preserving strict request/response runtime validation.
-- ZAP API scan uses a temporary local copy normalized to OpenAPI 3.1.2 before execution.
+- The contract is generated as OpenAPI 3.1.0 by `@fastify/swagger` from the Zod
+  schemas (`pnpm run openapi:generate`). There is no version-normalization bridge:
+  the same Zod schemas drive runtime validation and the published contract.
 
-## Workflow artifacts
+## Practical limitation
 
-- Arazzo workflows under `contracts/arazzo/**` define multi-step API consumption flows.
-- Overlay documents under `contracts/overlay/**` define repeatable contract transformations.
-- `pnpm run workflow:artifacts:check` validates both Arazzo and Overlay artifact structure.
-
-## Arazzo version policy
-
-- Source workflow contract uses Arazzo 1.1.0.
-- Runtime workflow verification currently relies on Redocly Respect in `@redocly/cli`, which executes Arazzo 1.0.1.
-- The verification script creates a temporary compatibility copy with `arazzo: 1.0.1` before Respect execution.
-- The bridge keeps source workflow artifacts on 1.1.0 while preserving executable CI verification.
+No stack guarantees zero defects. The goal is fast defect detection and contract
+drift prevention across CI, runtime validation, and DB-backed integration tests.

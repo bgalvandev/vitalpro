@@ -7,10 +7,14 @@ datasource db {
 }
 
 model Appointment {
-  id        String            @id
-  status    AppointmentStatus
-  createdAt DateTime          @default(now()) @map("created_at")
-  updatedAt DateTime          @updatedAt @map("updated_at")
+  id              String            @id
+  status          AppointmentStatus
+  serviceName     String            @map("service_name")
+  clientName      String            @map("client_name")
+  startsAt        DateTime          @map("starts_at")
+  durationMinutes Int               @map("duration_minutes")
+  createdAt       DateTime          @default(now()) @map("created_at")
+  updatedAt       DateTime          @updatedAt @map("updated_at")
 
   @@map("appointments")
 }

@@ -12,8 +12,9 @@ export default defineConfig(() => ({
     globals: true,
     environment: 'node',
     include: ['{src,tests}/**/*.{test,spec}.{js,mjs,cjs,ts,mts,cts,jsx,tsx}'],
-    testTimeout: 120000,
-    hookTimeout: 120000,
+    // Integration specs need a real database and run via the `test:integration`
+    // target, so the default (hermetic) unit run excludes them.
+    exclude: ['**/*.integration.spec.ts'],
     reporters: ['default'],
     coverage: {
       reportsDirectory: '../../coverage/libs/appointments',
