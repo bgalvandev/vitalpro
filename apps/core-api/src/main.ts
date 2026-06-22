@@ -1,9 +1,9 @@
 import 'dotenv/config';
 
-import type { Server } from 'node:http';
+import type { FastifyInstance } from 'fastify';
 
-import { InMemoryAppointmentRepository } from '@vitalpro/appointments';
-
+import { loadConfig } from './infrastructure/config/load-config';
+import { logger } from './infrastructure/logging/logger';
 import {
   createAppointmentRepositoryRuntime,
   type AppointmentRepositoryRuntime,
@@ -14,60 +14,18 @@ export function createStartupMessage(port: number): string {
   return `VitalPro Core API listening on port ${port}`;
 }
 
-export function parsePort(value: string | undefined): number {
-  const defaultPort = 3000;
-  if (!value) {
-    return defaultPort;
-  }
-
-  const parsed = Number.parseInt(value, 10);
-  if (Number.isNaN(parsed) || parsed <= 0) {
-    return defaultPort;
-  }
-
-  return parsed;
-}
-
-let runtimeServer: Server | undefined;
+let runtimeApp: FastifyInstance | undefined;
 let appointmentRepositoryRuntime: AppointmentRepositoryRuntime | undefined;
 let shutdownHandlersRegistered = false;
 
-export function shouldUseInMemoryAppointments(value: string | undefined): boolean {
-  return value === 'true';
-}
-
-export function createAppointmentRepositoryRuntimeForEnvironment(): AppointmentRepositoryRuntime {
-  if (shouldUseInMemoryAppointments(process.env.CORE_API_USE_IN_MEMORY_APPOINTMENTS)) {
-    return {
-      appointmentRepository: new InMemoryAppointmentRepository(),
-      shutdown: async () => {},
-    };
-  }
-
-  return createAppointmentRepositoryRuntime();
-}
-
-function closeServer(server: Server): Promise<void> {
-  return new Promise((resolve, reject) => {
-    server.close((error) => {
-      if (error) {
-        reject(error);
-        return;
-      }
-
-      resolve();
-    });
-  });
-}
-
 export async function shutdown(): Promise<void> {
-  const server = runtimeServer;
+  const app = runtimeApp;
   const repositoryRuntime = appointmentRepositoryRuntime;
-  runtimeServer = undefined;
+  runtimeApp = undefined;
   appointmentRepositoryRuntime = undefined;
 
-  if (server) {
-    await closeServer(server);
+  if (app) {
+    await app.close();
   }
 
   await repositoryRuntime?.shutdown();
@@ -86,29 +44,34 @@ function registerShutdownHandlers(): void {
           process.exit(0);
         })
         .catch((error: unknown) => {
-          console.error(error);
+          logger.error({ err: error }, 'Error during shutdown');
           process.exit(1);
         });
     });
   }
 }
 
-export async function bootstrap(): Promise<Server> {
-  appointmentRepositoryRuntime = createAppointmentRepositoryRuntimeForEnvironment();
+export async function bootstrap(): Promise<FastifyInstance> {
+  const config = loadConfig();
+  const repositoryRuntime = createAppointmentRepositoryRuntime(config.databaseUrl);
+  appointmentRepositoryRuntime = repositoryRuntime;
 
-  const app = createCoreApiApp({
-    appointmentRepository: appointmentRepositoryRuntime.appointmentRepository,
+  // Fail fast if the database is unreachable instead of starting a server that
+  // would only error on the first request.
+  await repositoryRuntime.checkConnection();
+
+  const app = await createCoreApiApp({
+    appointmentRepository: repositoryRuntime.appointmentRepository,
+    serviceToken: config.serviceToken,
+    checkReadiness: () => repositoryRuntime.checkConnection(),
+    loggerInstance: logger,
   });
-  const port = parsePort(process.env.PORT);
+  runtimeApp = app;
 
-  runtimeServer = await new Promise<Server>((resolve) => {
-    const server = app.listen(port, () => {
-      console.log(createStartupMessage(port));
-      resolve(server);
-    });
-  });
+  await app.listen({ port: config.port, host: '0.0.0.0' });
+  logger.info({ port: config.port }, createStartupMessage(config.port));
 
-  return runtimeServer;
+  return app;
 }
 
 if (process.env.NODE_ENV !== 'test' && process.env.VITEST !== 'true') {
@@ -117,7 +80,7 @@ if (process.env.NODE_ENV !== 'test' && process.env.VITEST !== 'true') {
       registerShutdownHandlers();
     })
     .catch((error: unknown) => {
-      console.error(error);
+      logger.error({ err: error }, 'Failed to start Core API');
       process.exit(1);
     });
 }

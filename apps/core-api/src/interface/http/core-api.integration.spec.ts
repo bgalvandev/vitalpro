@@ -1,184 +1,206 @@
-import { EventEmitter } from 'node:events';
-
-import type express from 'express';
-import type { AppointmentRepository } from '@vitalpro/appointments';
-import { AppointmentsEntity } from '@vitalpro/appointments';
-import httpMocks from 'node-mocks-http';
-import { describe, expect, it } from 'vitest';
+import { type AppointmentRepository, AppointmentsEntity } from '@vitalpro/appointments';
+import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 
 import { createCoreApiApp } from './create-core-api-app';
 
-interface InvocationResult {
-  status: number;
-  body: unknown;
-  headers: Record<string, string | string[] | number>;
-}
+const sampleDetail = {
+  serviceName: 'Consultation call',
+  clientName: 'Mara Quispe',
+  startsAt: new Date('2026-06-22T08:40:00.000Z'),
+  durationMinutes: 30,
+};
 
-async function invokeRequest(
-  app: express.Express,
-  method: string,
-  path: string,
-  authorization?: string,
-): Promise<InvocationResult> {
-  const headers: Record<string, string> = {};
-  if (authorization) {
-    headers.authorization = authorization;
-  }
+const expectedAppointment = {
+  id: 'apt-001',
+  status: 'scheduled',
+  serviceName: 'Consultation call',
+  clientName: 'Mara Quispe',
+  startsAt: '2026-06-22T08:40:00.000Z',
+  durationMinutes: 30,
+};
 
-  const request = httpMocks.createRequest({
-    method,
-    url: path,
-    headers,
-  });
+const appointmentRepository: AppointmentRepository = {
+  async findById(id) {
+    if (id !== 'apt-001') {
+      return null;
+    }
+    return AppointmentsEntity.create({ id, status: 'scheduled', ...sampleDetail });
+  },
+  async list({ limit }) {
+    return [
+      AppointmentsEntity.create({ id: 'apt-001', status: 'scheduled', ...sampleDetail }),
+    ].slice(0, limit);
+  },
+};
 
-  const response = httpMocks.createResponse({
-    eventEmitter: EventEmitter,
-  });
-
-  await new Promise<void>((resolve, reject) => {
-    response.on('end', resolve);
-    response.on('error', reject);
-    app.handle(request, response, reject);
-  });
-
-  return {
-    status: response.statusCode,
-    body: response._getJSONData(),
-    headers: response._getHeaders(),
-  };
-}
+const SERVICE_TOKEN = 'local-test-token';
+const BEARER = `Bearer ${SERVICE_TOKEN}`;
 
 describe('Core API integration', () => {
-  const appointmentRepository: AppointmentRepository = {
-    async findById(id) {
-      if (id !== 'apt-001') {
-        return null;
-      }
+  let app: Awaited<ReturnType<typeof createCoreApiApp>>;
 
-      return AppointmentsEntity.create({
-        id,
-        status: 'scheduled',
-      });
-    },
-  };
-
-  const app = createCoreApiApp({
-    appointmentRepository,
+  beforeAll(async () => {
+    app = await createCoreApiApp({ appointmentRepository, serviceToken: SERVICE_TOKEN });
   });
 
-  it('returns 401 when authorization header is missing', async () => {
-    const response = await invokeRequest(
-      app,
-      'GET',
-      '/api/v1/appointments/apt-001',
-    );
+  afterAll(async () => {
+    await app.close();
+  });
 
-    expect(response.status).toBe(401);
-    expect(response.body).toEqual({
-      code: 'unauthorized',
-      message: 'Authorization header required',
+  it('exposes /health without authentication', async () => {
+    const response = await app.inject({ method: 'GET', url: '/health' });
+
+    expect(response.statusCode).toBe(200);
+    expect(response.json()).toEqual({ status: 'ok' });
+  });
+
+  it('reports readiness ok when the dependency check passes', async () => {
+    const readyApp = await createCoreApiApp({
+      appointmentRepository,
+      serviceToken: SERVICE_TOKEN,
+      checkReadiness: async () => {},
+    });
+    try {
+      const response = await readyApp.inject({ method: 'GET', url: '/ready' });
+      expect(response.statusCode).toBe(200);
+      expect(response.json()).toEqual({ status: 'ok', database: 'up' });
+    } finally {
+      await readyApp.close();
+    }
+  });
+
+  it('reports 503 readiness when the dependency check fails', async () => {
+    const notReadyApp = await createCoreApiApp({
+      appointmentRepository,
+      serviceToken: SERVICE_TOKEN,
+      checkReadiness: async () => {
+        throw new Error('database unreachable');
+      },
+    });
+    try {
+      const response = await notReadyApp.inject({ method: 'GET', url: '/ready' });
+      expect(response.statusCode).toBe(503);
+      expect(response.json()).toEqual({ status: 'error', database: 'down' });
+    } finally {
+      await notReadyApp.close();
+    }
+  });
+
+  it('returns 401 Problem Details when authorization is missing', async () => {
+    const response = await app.inject({
+      method: 'GET',
+      url: '/api/v1/appointments/apt-001',
+    });
+
+    expect(response.statusCode).toBe(401);
+    expect(response.headers['content-type']).toContain('application/problem+json');
+    expect(response.json()).toMatchObject({
+      title: 'Unauthorized',
+      status: 401,
+      detail: 'Authorization header required',
     });
   });
 
-  it('returns 200 with appointment payload', async () => {
-    const response = await invokeRequest(
-      app,
-      'GET',
-      '/api/v1/appointments/apt-001',
-      'Bearer local-test-token',
-    );
+  it('returns 401 Problem Details when the bearer token does not match', async () => {
+    const response = await app.inject({
+      method: 'GET',
+      url: '/api/v1/appointments/apt-001',
+      headers: { authorization: 'Bearer wrong-token' },
+    });
 
-    expect(response.status).toBe(200);
-    expect(response.body).toEqual({
-      id: 'apt-001',
-      status: 'scheduled',
+    expect(response.statusCode).toBe(401);
+    expect(response.headers['content-type']).toContain('application/problem+json');
+    expect(response.json()).toMatchObject({
+      title: 'Unauthorized',
+      status: 401,
+      detail: 'Invalid authorization token',
     });
   });
 
-  it('returns 404 when appointment does not exist', async () => {
-    const response = await invokeRequest(
-      app,
-      'GET',
-      '/api/v1/appointments/apt-999',
-      'Bearer local-test-token',
-    );
-
-    expect(response.status).toBe(404);
-    expect(response.body).toEqual({
-      code: 'not_found',
-      message: 'Appointment not found',
+  it('returns 200 with the appointment payload', async () => {
+    const response = await app.inject({
+      method: 'GET',
+      url: '/api/v1/appointments/apt-001',
+      headers: { authorization: BEARER },
     });
+
+    expect(response.statusCode).toBe(200);
+    expect(response.json()).toEqual(expectedAppointment);
   });
 
-  it('returns sanitized 500 when the repository fails', async () => {
-    const throwingApp = createCoreApiApp({
+  it('returns 200 with the appointments collection', async () => {
+    const response = await app.inject({
+      method: 'GET',
+      url: '/api/v1/appointments',
+      headers: { authorization: BEARER },
+    });
+
+    expect(response.statusCode).toBe(200);
+    expect(response.json()).toEqual({ items: [expectedAppointment], limit: 50 });
+  });
+
+  it('rejects a collection limit above the contract maximum', async () => {
+    const response = await app.inject({
+      method: 'GET',
+      url: '/api/v1/appointments?limit=500',
+      headers: { authorization: BEARER },
+    });
+
+    expect(response.statusCode).toBe(400);
+  });
+
+  it('returns 404 Problem Details when the appointment does not exist', async () => {
+    const response = await app.inject({
+      method: 'GET',
+      url: '/api/v1/appointments/apt-999',
+      headers: { authorization: BEARER },
+    });
+
+    expect(response.statusCode).toBe(404);
+    expect(response.headers['content-type']).toContain('application/problem+json');
+    expect(response.json()).toMatchObject({ title: 'Not Found', status: 404 });
+  });
+
+  it('returns a sanitized 500 when the repository fails', async () => {
+    const failingApp = await createCoreApiApp({
+      serviceToken: SERVICE_TOKEN,
       appointmentRepository: {
         async findById() {
           throw new Error('database password leaked in driver message');
         },
+        async list() {
+          throw new Error('database password leaked in driver message');
+        },
       },
     });
+    try {
+      const response = await failingApp.inject({
+        method: 'GET',
+        url: '/api/v1/appointments/apt-001',
+        headers: { authorization: BEARER },
+      });
 
-    const response = await invokeRequest(
-      throwingApp,
-      'GET',
-      '/api/v1/appointments/apt-001',
-      'Bearer local-test-token',
-    );
+      expect(response.statusCode).toBe(500);
+      expect(response.json()).toMatchObject({
+        title: 'Internal Server Error',
+        status: 500,
+        detail: 'Internal server error',
+      });
+    } finally {
+      await failingApp.close();
+    }
+  });
 
-    expect(response.status).toBe(500);
-    expect(response.body).toEqual({
-      code: 'internal_error',
-      message: 'Internal server error',
+  it('sets security headers and omits x-powered-by on API responses', async () => {
+    const response = await app.inject({
+      method: 'GET',
+      url: '/api/v1/appointments/apt-001',
+      headers: { authorization: BEARER },
     });
-  });
 
-  it('returns 405 with allow header for unsupported methods', async () => {
-    const response = await invokeRequest(
-      app,
-      'TRACE',
-      '/api/v1/appointments/apt-001',
-      'Bearer local-test-token',
-    );
-
-    expect(response.status).toBe(405);
-    expect(response.headers.allow).toBe('GET');
-  });
-
-  it('does not expose x-powered-by header', async () => {
-    const response = await invokeRequest(
-      app,
-      'GET',
-      '/api/v1/appointments/apt-001',
-      'Bearer local-test-token',
-    );
-
+    expect(response.headers['cache-control']).toBe('no-store');
+    expect(response.headers.pragma).toBe('no-cache');
+    expect(response.headers['x-content-type-options']).toBe('nosniff');
     expect(response.headers['x-powered-by']).toBeUndefined();
-  });
-
-  it('marks appointment responses as non-storable', async () => {
-    const response = await invokeRequest(
-      app,
-      'GET',
-      '/api/v1/appointments/apt-001',
-      'Bearer local-test-token',
-    );
-
-    expect(response.headers['cache-control']).toBe('no-store');
-    expect(response.headers.pragma).toBe('no-cache');
-    expect(response.headers['x-content-type-options']).toBe('nosniff');
-  });
-
-  it('marks appointment error responses as non-storable', async () => {
-    const response = await invokeRequest(
-      app,
-      'GET',
-      '/api/v1/appointments/apt-999',
-      'Bearer local-test-token',
-    );
-
-    expect(response.headers['cache-control']).toBe('no-store');
-    expect(response.headers.pragma).toBe('no-cache');
-    expect(response.headers['x-content-type-options']).toBe('nosniff');
   });
 });

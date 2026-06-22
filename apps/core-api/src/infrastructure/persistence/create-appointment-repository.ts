@@ -3,25 +3,26 @@ import {
   PrismaAppointmentRepository,
 } from '@vitalpro/appointments';
 
-import { createPrismaClientFromEnvironment } from './prisma-client';
+import { createPrismaClient } from './prisma-client';
 
 export interface AppointmentRepositoryRuntime {
   appointmentRepository: AppointmentRepository;
+  checkConnection(): Promise<void>;
   shutdown(): Promise<void>;
 }
 
-export function createAppointmentRepository(): AppointmentRepository {
-  return createAppointmentRepositoryRuntime().appointmentRepository;
-}
-
-export function createAppointmentRepositoryRuntime(): AppointmentRepositoryRuntime {
-  const prisma = createPrismaClientFromEnvironment();
-  if (!prisma) {
-    throw new Error('DATABASE_URL is required to start the Core API.');
-  }
+export function createAppointmentRepositoryRuntime(
+  databaseUrl: string,
+): AppointmentRepositoryRuntime {
+  const prisma = createPrismaClient(databaseUrl);
 
   return {
     appointmentRepository: new PrismaAppointmentRepository(prisma),
+    // `SELECT 1` is a connectivity/readiness probe (startup fail-fast and the
+    // /ready endpoint), not a business query — hence the raw query in infrastructure.
+    checkConnection: async () => {
+      await prisma.$queryRaw`SELECT 1`;
+    },
     shutdown: () => prisma.$disconnect(),
   };
 }

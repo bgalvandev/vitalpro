@@ -26,8 +26,8 @@ Run before creating a commit. Report any failing check and stop until it is reso
    `<type>[optional scope]: <description>`
    - Type MUST be one of: `feat`, `fix`, `refactor`, `perf`, `docs`, `test`, `build`, `ci`,
      `chore`, `revert`.
-   - Scope SHOULD map to an Nx project/module (e.g. `core-api`, `appointments`,
-     `health-domain`, `tools`). If no stable scope fits, omit it and note why.
+   - Scope SHOULD map to an Nx project/module (e.g. `core-api`, `web`,
+     `appointments`, `tools`). If no stable scope fits, omit it and note why.
    - Mark breaking changes with `!` and/or a `BREAKING CHANGE:` footer.
    - Subject MUST be concise, specific, and in English.
 4. The commit message MUST NOT contain authorship trailers — no `Co-Authored-By:` or
@@ -41,4 +41,4 @@ Run before creating a commit. Report any failing check and stop until it is reso
 
 - `feat(appointments): add waitlist auto-fill use case`
 - `fix(core-api): prevent duplicate charge retries`
-- `refactor(health-domain)!: remove legacy encounter format`
+- `refactor(appointments)!: remove legacy status format`

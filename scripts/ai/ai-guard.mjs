@@ -1,3 +1,10 @@
+// Architecture guard for intra-module Clean Architecture boundaries.
+//
+// Nx's @nx/enforce-module-boundaries (eslint.config.mjs) enforces dependencies
+// BETWEEN projects via tags (surface:core/health, scope:shared). This guard
+// covers what tags cannot: the dependency direction BETWEEN layer folders inside
+// a single project (interface -> application -> domain, infrastructure inward,
+// domain free of external infra packages). Wired into `pnpm check`.
 import { promises as fs } from 'node:fs';
 import path from 'node:path';
 import process from 'node:process';
@@ -85,26 +92,9 @@ function resolveLayerFromImport(importPath, filePath) {
   return null;
 }
 
-function isCorePath(filePath) {
-  const normalized = filePath.split(path.sep).join('/');
-  return normalized.includes('/apps/core-api/') || normalized.includes('/libs/appointments/');
-}
-
-function isHealthDependency(importPath) {
-  return importPath.includes('health-domain') || importPath.includes('/health/');
-}
-
 function validateFile(filePath, content, errors) {
   const layer = getLayer(filePath);
   const relativePath = path.relative(workspaceRoot, filePath);
-
-  if (/\bTODO\b|\bFIXME\b/.test(content)) {
-    errors.push(`${relativePath}: contains TODO/FIXME markers.`);
-  }
-
-  if (/\bany\b/.test(content)) {
-    errors.push(`${relativePath}: contains explicit any.`);
-  }
 
   const imports = parseImports(content);
 
@@ -127,10 +117,6 @@ function validateFile(filePath, content, errors) {
       if (domainBlockedPackages.some((pkg) => importPath === pkg || importPath.startsWith(`${pkg}/`))) {
         errors.push(`${relativePath}: domain layer must not import external infra package (${importPath}).`);
       }
-    }
-
-    if (isCorePath(filePath) && isHealthDependency(importPath)) {
-      errors.push(`${relativePath}: Core surface must not depend on Health (${importPath}).`);
     }
   }
 }

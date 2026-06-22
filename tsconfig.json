@@ -7,7 +7,10 @@
       "path": "./apps/core-api"
     },
     {
-      "path": "./libs/health-domain"
+      "path": "./libs/appointments"
+    },
+    {
+      "path": "./tools"
     }
   ]
 }

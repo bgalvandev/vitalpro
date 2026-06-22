@@ -3,32 +3,25 @@ packages:
   - libs/*
   - tools
 
+# Version-unification + transitive-dependency security pins. Every entry must
+# resolve to a package actually present in the tree; dead pins (packages no
+# longer pulled by any dependency) are removed to keep this list truthful.
 overrides:
   '@types/react': 19.2.17
   react: 19.2.7
   react-dom: 19.2.7
   axios: 1.16.0
   follow-redirects: 1.16.0
-  lodash: 4.18.1
-  handlebars: 4.7.9
-  node-forge: 1.4.0
   flatted: 3.4.2
   qs: 6.15.2
   yaml: 2.8.4
-  jose: 4.15.5
-  underscore: 1.13.8
   brace-expansion: 5.0.6
   tmp: 0.2.7
   uuid: 11.1.1
   ws: 8.21.0
-  protobufjs: 7.6.3
-  '@hono/node-server': 1.19.13
-  '@grpc/grpc-js': 1.14.4
   form-data: 4.0.6
   hono: 4.12.25
   js-yaml: 4.2.0
-  multer: 2.2.0
-  piscina: 4.9.3
   undici: 7.28.0
 
 allowBuilds:
@@ -41,7 +34,6 @@ allowBuilds:
   less: false
   nx: true
   prisma: true
-  protobufjs: true
   sharp: false
   ssh2: true
   unrs-resolver: true
