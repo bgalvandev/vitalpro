@@ -26,6 +26,10 @@ keeps running and reporting breaks in logs/annotations, but does not fail the jo
 (`continue-on-error: true`). The `contracts` check therefore stays green and does
 not block merges for intentional pre-1.0 contract changes.
 
+Consistently, `contracts` is **not** a required status check on `main` while it is
+advisory (the required checks are `quality` and the CodeQL analysis). The job
+still runs and reports on every PR.
+
 This is a deliberate, documented relaxation — not an ad-hoc patch to clear a
 single merge block. Breaking changes MUST still be declared in the PR (Conventional
 Commits `!` / `BREAKING CHANGE:` footer) and evaluated per the API Query and
@@ -36,11 +40,11 @@ Response Shape Standard.
 - Pre-1.0 contract evolution is unblocked while breaks remain visible for review.
 - The gate does not protect against accidental breaks during this window; reviewers
   carry that responsibility until it is re-enabled.
-- Re-enabling is a one-line change: remove `continue-on-error` from the detection
-  step so the check blocks again.
+- Re-enabling at v1.0 is two steps: remove `continue-on-error` from the detection
+  step, and add `contracts` back to the required status checks on `main`.
 
 ## Review / expiration
 
 Re-evaluate when the Core Appointments API is declared stable (v1.0) or gains its
 first external consumer, whichever comes first. At that point blocking MUST be
-restored and this ADR superseded.
+restored (both steps above) and this ADR superseded.
