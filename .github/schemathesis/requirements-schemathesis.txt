@@ -1,2 +1,0 @@
-# Cache dependency marker for schemathesis/action setup-uv.
-schemathesis==4.18.1
