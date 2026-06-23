@@ -36,6 +36,13 @@ jobs:
       - name: Run quality checks
         run: pnpm run check
 
+      - name: Verify OpenAPI contract is in sync with the code
+        run: |
+          pnpm run openapi:check || {
+            echo "::error::OpenAPI contract is out of date. Run 'pnpm run openapi:generate' and commit the result."
+            exit 1
+          }
+
   integration:
     runs-on: ubuntu-latest
     needs: quality
