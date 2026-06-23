@@ -1,20 +1,14 @@
-<div align="center">
-
 # VitalPro
 
-**Modular, AI-native SaaS for appointment-based service businesses** — built on bookings, recurring clients, and follow-up.
-
-</div>
+VitalPro is a modular, AI-native SaaS platform for professional service businesses — managing the full lifecycle of clients, bookings, payments, and follow-up, from a vertical-agnostic core to specialized vertical extensions like healthcare.
 
 <!-- Add a product banner / screenshot here once brand assets exist. -->
-
----
 
 ## Product
 
 VitalPro ships as two surfaces on one platform:
 
-- **VitalPro Core** — the vertical-agnostic platform for appointment-based businesses: customers, bookings & schedules, services, staff, locations, payments, messaging, campaigns, follow-up workflows, audit trails, and insights.
+- **VitalPro Core** — the vertical-agnostic platform for service businesses: customers, bookings & schedules, services, staff, locations, payments, messaging, campaigns, follow-up workflows, audit trails, and insights.
 - **VitalPro Health** — a clinical/wellness vertical extension (clinics, dentistry, physiotherapy, psychology, nutrition, aesthetics): patients, encounters, consents, observations, compliance. Health may depend on Core; **Core never depends on Health**.
 
 ## Quick start
@@ -51,3 +45,7 @@ This repository is built to be worked on by **AI coding agents** as much as by p
 - `apps/web` — Core web app (Next.js + React + Tailwind).
 - `libs/*` — feature modules (Clean Architecture: domain / application / infrastructure / interface).
 - `tools` — local Nx generator (`@vitalpro/tools:clean-module`).
+
+## License
+
+Proprietary — © 2026 Bruno Galván. All rights reserved. See [LICENSE](./LICENSE).
