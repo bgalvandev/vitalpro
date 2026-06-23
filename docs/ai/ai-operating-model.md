@@ -9,9 +9,10 @@ The step-by-step protocol — verify before claiming, no hallucinated APIs, smal
 correct change, respect the architecture, run the gates before declaring done — is
 the `engineering-discipline` skill (`.agents/skills/engineering-discipline/`). Topic
 skills cover specifics: `frontend-architecture`, `frontend-performance`,
-`frontend-e2e`, `backend-architecture`, `backend-performance`,
-`api-response-patterns`, `health-entity-modeling`, `code-quality`,
-`openapi-contract-update`, `scaffold-module`, `commit-check`, `pr-ready`.
+`frontend-e2e`, `frontend-design`, `backend-architecture`, `backend-performance`,
+`api-response-patterns`, `entity-modeling`, `code-quality`,
+`openapi-contract-update`, `scaffold-module`, `commit-check`, `pr-ready`,
+`prisma-client-api`.
 
 Standing rules (always-on) live in `AGENTS.md`; this file and the skills must not
 restate or relax them.

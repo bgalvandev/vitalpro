@@ -225,18 +225,14 @@ Scope: module boundaries, contracts, architecture docs, dependency decisions.
 1. The platform is modeled as two surfaces: **VitalPro Core** (vertical-agnostic for
    appointment-based service businesses) and **VitalPro Health** (a vertical
    extension that MAY depend on Core).
-2. Core MUST NOT depend on Health-only semantics, modules, or FHIR artifacts; reverse
-   (Core→Health) dependencies are merge blockers. Cross-surface dependencies MUST
-   point Health→Core.
-3. Health MAY add healthcare modules (patients, encounters, consents, observations)
-   and MAY use non-FHIR internal models mapped at interoperability boundaries.
-4. FHIR usage MUST be constrained to Health interoperability boundaries and MUST NOT
-   be the governing internal domain model.
+2. Core MUST NOT depend on Health-only semantics or modules; reverse (Core→Health)
+   dependencies are merge blockers. Cross-surface dependencies MUST point Health→Core.
+3. Health MAY add healthcare modules (patients, encounters, consents, observations),
+   modeled as clean internal domain models per "Entity Modeling".
 
-Verification: reviewer classifies each changed module as Core/Health in the PR,
-checks import direction (rejecting Core→Health), and confirms FHIR artifacts are
-Health interop work. CI runs the affected validation command (see "CI Execution
-Guidance").
+Verification: reviewer classifies each changed module as Core/Health in the PR and
+checks import direction (rejecting Core→Health). CI runs the affected validation command
+(see "CI Execution Guidance").
 
 ## Stack Baseline (2026)
 Default unless an ADR approves an exception.
@@ -245,7 +241,7 @@ Default unless an ADR approves an exception.
   `"strict": true`.
 - Web: **Next.js (App Router) + React + TypeScript**; styling **Tailwind CSS**; UI as
   repository-owned source components. The **React Compiler is enabled** (see Frontend
-  Standard).
+  Architecture and Rendering Standard).
 - Mobile: React Native + Expo + TypeScript.
 - Backend: Node.js services (REST/OpenAPI when external clients are expected);
   boundary validation with **Zod**.
@@ -395,23 +391,24 @@ duplicated `SKILL.md`; `git ls-files .agents/skills .claude` and
 reviewer checks frontmatter, scoped `allowed-tools`, no plaintext secrets, and no
 contradictions.
 
-## Health Data Modeling and FHIR (Mandatory)
-Scope: VitalPro Health modules and any future health-data exchange. Procedure:
-`health-entity-modeling` skill.
+## Entity Modeling (Mandatory)
+Scope: any new domain entity, value object, module, or domain rule. Procedure:
+`entity-modeling` skill.
 
-1. Health entities MUST be modeled as clean internal domain models (per the Architecture
-   Standard), using HL7 FHIR R4, openEHR, and clinical terminologies (SNOMED CT, LOINC)
-   only as field/concept references. A FHIR/openEHR resource structure MUST NOT be used
-   as the internal domain model; coded clinical fields SHOULD reference a terminology
-   (code + system) rather than ad-hoc enums (justify deviations in the PR).
-2. External FHIR interoperability (exposing or consuming FHIR APIs) is out of scope
-   until approved by an ADR. When introduced, external contracts MUST use FHIR R4
-   (`4.0.1`) at the interoperability boundary, MUST NOT become the canonical internal
-   model, and the ADR MUST (re)establish the interop rules and any required
-   `docs/interop/**` artifacts (mapping, checklist, CapabilityStatement).
+1. Every domain entity MUST be a clean, flat internal domain model (per the Architecture
+   Standard) with invariants owned by the domain. No single source governs all entities:
+   contributors MUST research the best-fit established model for the concept (domain
+   patterns, authoritative references, prior art in this repo) and use it as a
+   field/concept reference, noting the sources in the PR. References inform fields, never
+   structure — a standard's resource/archetype shape MUST NOT become the internal model.
+2. Coded fields SHOULD bind to an authoritative vocabulary (currency, units, clinical
+   codes, …) as `{ code, system, display }` rather than ad-hoc enums (justify deviations
+   in the PR). Prefer extending an existing entity or adding a role over duplicating one;
+   do not generalize speculatively.
 
-Verification: reviewer checks Health entities are clean non-FHIR internal models with
-terminology-referenced coded fields; any FHIR interop work links an approving ADR.
+Verification: reviewer checks each entity is a clean internal domain model, the PR notes
+the references it was based on, coded fields bind to a vocabulary, no exchange-format
+structure leaks into the domain, and no entity duplicates one a role would cover.
 
 ## Non-Negotiable Coding Rules
 1. No cross-layer shortcuts: `interface`/`infrastructure` MUST NOT bypass `application`
@@ -424,6 +421,10 @@ terminology-referenced coded fields; any FHIR interop work links an approving AD
 5. Domain logic MUST be deterministic and unit-testable without network/DB.
 6. Every new module MUST ship with at least one core use case and tests.
 7. No hidden coupling across Nx projects via path hacks or forbidden imports.
+
+Verification: reviewer checks these rules in code review; `pnpm run ai:guard` enforces
+layer/import boundaries and CI fails on violations; domain unit tests run without
+network/DB.
 
 ## Testing Standard
 - **domain**: fast unit tests for invariants/rules.
@@ -442,8 +443,8 @@ Tooling:
 5. Pre-commit checks SHOULD be enforced with Husky and lint-staged; deviation is
    acceptable only with equivalent CI gates for all staged checks, justified in the PR.
 
-Minimum merge gate (affected projects): lint, typecheck, test, build pass; web e2e
-passes when web behavior changes; no layer-dependency or Nx module-boundary
+Verification (minimum merge gate, affected projects): lint, typecheck, test, build pass;
+web e2e passes when web behavior changes; no layer-dependency or Nx module-boundary
 violations; dead-code and duplication gates pass.
 
 ## File and Naming Conventions
@@ -451,6 +452,9 @@ violations; dead-code and duplication gates pass.
 `*.repository.ts` (clear interface vs implementation), `*.controller.ts`/`*.handler.ts`,
 `*.dto.ts`, `*.mapper.ts`. Prefer explicit names; `service.ts`/`utils.ts` are
 discouraged.
+
+Verification: reviewer checks changed files use these suffixes and flags generic
+`service.ts`/`utils.ts` names in review.
 
 ## Module Scaffolding Standard (Mandatory)
 Scope: new module libraries under `libs/**`. Procedure: `scaffold-module` skill.

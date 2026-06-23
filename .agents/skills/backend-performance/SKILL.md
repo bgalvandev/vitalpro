@@ -29,7 +29,7 @@ stated reason.
   rows, not data selection — resolving them in the app is correct.
 - **Explicit `select`**: every Prisma read MUST list the columns it needs (see
   `APPOINTMENT_SELECT` in `prisma-appointment.repository.ts`). Never return the full
-  row or an unbounded relation graph. This is also an AGENTS.md gate (API Query and
+  row or an unbounded relation graph. This is also an AGENTS.md gate (API Contract and
   Response Shape Standard).
 - **Bound every collection**: list queries MUST use `take` (and pagination/cursor when
   the set can grow), with a max enforced in the contract. The appointments list caps

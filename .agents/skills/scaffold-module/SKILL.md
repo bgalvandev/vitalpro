@@ -18,7 +18,8 @@ merge blocker. Follow these steps.
 
 If the surface is missing, ask which surface the module belongs to before generating.
 Recall the topology rule: `Core` MUST NOT depend on `Health`; reverse dependencies are
-merge blockers. Health-only concepts (patients, encounters, consents, FHIR) are `health`.
+merge blockers. Health-only concepts (patients, encounters, consents, clinical
+observations) are `health`; everything vertical-agnostic is `core`.
 
 ## Steps
 
