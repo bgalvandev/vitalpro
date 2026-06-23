@@ -3,9 +3,12 @@ packages:
   - libs/*
   - tools
 
-# Version-unification + transitive-dependency security pins. Every entry must
-# resolve to a package actually present in the tree; dead pins (packages no
-# longer pulled by any dependency) are removed to keep this list truthful.
+# Version-unification + transitive-dependency SECURITY pins. These are
+# load-bearing: each forces a safe/unified version of a package some dependency
+# would otherwise resolve lower. Do NOT remove an entry based on a name scan.
+# Before removing one, prove it is no longer needed: drop it, run
+# `pnpm update <pkg>`, and confirm the lockfile still resolves to a safe version
+# (scoped names like '@scope/pkg' are quoted in pnpm-lock.yaml).
 overrides:
   '@types/react': 19.2.17
   react: 19.2.7
@@ -20,6 +23,8 @@ overrides:
   uuid: 11.1.1
   ws: 8.21.0
   form-data: 4.0.6
+  # Required: @prisma/dev pins @hono/node-server to exactly 1.19.11 (vulnerable,
+  # GHSA-92pp-h63x-v22m) and Prisma ships no fix yet. Remove when Prisma bumps it.
   '@hono/node-server': ^1.19.13
   hono: 4.12.25
   js-yaml: 4.2.0
