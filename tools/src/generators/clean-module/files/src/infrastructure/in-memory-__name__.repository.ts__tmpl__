@@ -1,0 +1,15 @@
+import type { <%= module.className %>Repository } from '../application';
+import type { <%= module.className %>Entity } from '../domain';
+
+// Reference adapter implementing the repository port in memory. Replace with a
+// real adapter (e.g. Prisma) in this layer, and keep persistence models out of
+// application/interface. See the backend-architecture skill.
+export class InMemory<%= module.className %>Repository
+  implements <%= module.className %>Repository
+{
+  private readonly items = new Map<string, <%= module.className %>Entity>();
+
+  async findById(id: string): Promise<<%= module.className %>Entity | null> {
+    return this.items.get(id) ?? null;
+  }
+}

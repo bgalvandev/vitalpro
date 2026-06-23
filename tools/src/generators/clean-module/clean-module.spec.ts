@@ -33,6 +33,17 @@ describe('clean-module generator', () => {
       expect(
         tree.exists('libs/patients/src/application/patients.use-case.ts'),
       ).toBe(true);
+      expect(
+        tree.exists('libs/patients/src/application/patients.repository.port.ts'),
+      ).toBe(true);
+      expect(
+        tree.exists('libs/patients/src/application/patients.use-case.spec.ts'),
+      ).toBe(true);
+      expect(
+        tree.exists(
+          'libs/patients/src/infrastructure/in-memory-patients.repository.ts',
+        ),
+      ).toBe(true);
       expect(tree.exists('libs/patients/src/infrastructure/index.ts')).toBe(true);
       expect(tree.exists('libs/patients/src/interface/index.ts')).toBe(true);
 

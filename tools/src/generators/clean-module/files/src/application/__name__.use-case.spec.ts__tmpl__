@@ -1,0 +1,32 @@
+import { describe, expect, it } from 'vitest';
+
+import { <%= module.className %>Entity } from '../domain';
+import type { <%= module.className %>Repository } from './<%= name %>.repository.port';
+import { Get<%= module.className %>ByIdUseCase } from './<%= name %>.use-case';
+
+describe('Get<%= module.className %>ByIdUseCase', () => {
+  it('returns the entity provided by the repository', async () => {
+    const entity = <%= module.className %>Entity.create({ id: 'id-1' });
+    const repository: <%= module.className %>Repository = {
+      findById: async () => entity,
+    };
+
+    const result = await new Get<%= module.className %>ByIdUseCase(
+      repository,
+    ).execute('id-1');
+
+    expect(result?.id).toBe('id-1');
+  });
+
+  it('returns null when the repository has no match', async () => {
+    const repository: <%= module.className %>Repository = {
+      findById: async () => null,
+    };
+
+    const result = await new Get<%= module.className %>ByIdUseCase(
+      repository,
+    ).execute('missing');
+
+    expect(result).toBeNull();
+  });
+});
