@@ -40,6 +40,6 @@ When AI output fails checks:
 - Strong model: architecture-sensitive edits, regression-prone changes, cross-module refactors.
 
 ## Non-negotiables
-- No Core -> Health dependency.
-- No layer boundary shortcuts.
-- No contract drift for external API behavior.
+
+Defined once in `AGENTS.md` (Core must not depend on Health, no layer-boundary
+shortcuts, no external API contract drift). Follow them there — not duplicated here.
