@@ -7,7 +7,7 @@ import { z } from 'zod';
  * (contracts/openapi/core/appointments.openapi.yaml, operation `listAppointments`).
  * Keep them reconciled with that contract in the same change.
  */
-export const appointmentStatusDtoSchema = z.enum([
+const appointmentStatusDtoSchema = z.enum([
   'scheduled',
   'completed',
   'cancelled',

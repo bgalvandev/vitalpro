@@ -1,7 +1,7 @@
 import { readProjectConfiguration, type Tree } from '@nx/devkit';
 import { createTreeWithEmptyWorkspace } from '@nx/devkit/testing';
 
-import { cleanModuleGenerator } from './clean-module';
+import cleanModuleGenerator from './clean-module';
 import type { CleanModuleGeneratorSchema } from './schema';
 
 describe('clean-module generator', () => {

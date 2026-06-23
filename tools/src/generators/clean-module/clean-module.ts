@@ -14,7 +14,7 @@ import * as path from 'path';
 
 import type { CleanModuleGeneratorSchema } from './schema';
 
-export async function cleanModuleGenerator(
+async function cleanModuleGenerator(
   tree: Tree,
   options: CleanModuleGeneratorSchema,
 ) {
