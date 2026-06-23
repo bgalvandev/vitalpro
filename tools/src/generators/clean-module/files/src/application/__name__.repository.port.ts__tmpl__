@@ -1,0 +1,7 @@
+import type { <%= module.className %>Entity } from '../domain';
+
+// Port owned by the application layer. Use cases depend on this interface;
+// concrete adapters live in infrastructure (never the reverse).
+export interface <%= module.className %>Repository {
+  findById(id: string): Promise<<%= module.className %>Entity | null>;
+}

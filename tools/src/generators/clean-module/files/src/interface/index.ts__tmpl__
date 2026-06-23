@@ -1,1 +1,2 @@
-// Add transport DTOs/handlers for <%= module.fileName %> in this layer.
+// Transport DTOs and handlers for <%= module.fileName %> live here. Map application
+// results to flat response DTOs — see the api-response-patterns skill.

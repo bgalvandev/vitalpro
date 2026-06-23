@@ -1,5 +1,12 @@
-import { <%= module.className %>Entity } from '../domain';
+import type { <%= module.className %>Entity } from '../domain';
+import type { <%= module.className %>Repository } from './<%= name %>.repository.port';
 
-export function create<%= module.className %>(id: string): <%= module.className %>Entity {
-  return <%= module.className %>Entity.create({ id });
+// Application use case: orchestrates the domain through a port. No framework or
+// I/O lives here — see the backend-architecture skill.
+export class Get<%= module.className %>ByIdUseCase {
+  constructor(private readonly repository: <%= module.className %>Repository) {}
+
+  async execute(id: string): Promise<<%= module.className %>Entity | null> {
+    return this.repository.findById(id);
+  }
 }
