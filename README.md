@@ -4,7 +4,7 @@
 
 **Modular, AI-native SaaS for appointment-based service businesses** — built on bookings, recurring clients, and follow-up.
 
-[Product](#product) &nbsp;•&nbsp; [Quick start](#quick-start) &nbsp;•&nbsp; [Architecture](#architecture) &nbsp;•&nbsp; [Engineering standards](./AGENTS.md) &nbsp;•&nbsp; [AI operating model](./docs/ai/ai-operating-model.md)
+[Engineering Standards](./AGENTS.md) &nbsp;·&nbsp; [AI Operating Model](./docs/ai/ai-operating-model.md) &nbsp;·&nbsp; [Testing Strategy](./docs/api-testing-strategy.md) &nbsp;·&nbsp; [Architecture Decisions](./docs/adr)
 
 </div>
 
