@@ -76,7 +76,7 @@ android/local.properties
 .vercel/
 
 # AI / agent local config
-# Portable skills live in .agents/skills (read by Codex and other agents);
+# Portable skills live in .agents/skills (read by tool-agnostic agents);
 # .claude/skills is a symlink so Claude Code discovers the same files.
 # Share team-owned config; keep personal/machine-specific overrides local.
 .agents/*
@@ -88,7 +88,6 @@ android/local.properties
 .claude/settings.local.json
 .cursor/
 .aider*
-.codex/
 
 # Nx local cache
 .nx/
