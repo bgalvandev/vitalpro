@@ -49,7 +49,7 @@ This repository is built to be worked on by AI coding agents. The runtime is
 tool-agnostic — there is no per-tool entry file duplicating the standards:
 
 - Engineering standards (always-on): `AGENTS.md`, imported by `CLAUDE.md` and read
-  natively by Codex and other agents.
+  natively by tool-agnostic agents.
 - On-demand procedures: model-invocable skills under `.agents/skills/**`
   (`.claude/skills` is a symlink so Claude Code discovers the same files).
 - Architecture guardrail: `pnpm run ai:guard` enforces Clean Architecture layer

@@ -46,7 +46,6 @@ Verification:
 Reference sources to consult for AGENTS format and best practices:
 - https://agents.md/
 - https://github.com/agentsmd/agents.md
-- https://openai.com/index/introducing-codex/
 
 ## Language Standard (Mandatory)
 All technical artifacts MUST be written in English by default:
@@ -465,11 +464,11 @@ Verification:
 Scope: repository-wide for `.agents/**`, `.claude/**`, `.gitignore` entries that match those paths, and `CLAUDE.md`.
 
 Impact and intent:
-1. `AGENTS.md` holds always-on standing instructions; agent skills hold on-demand, model-invocable procedures in the open `SKILL.md` format. `CLAUDE.md` imports `AGENTS.md`; tool-agnostic agents such as OpenAI Codex read `AGENTS.md` natively, so no per-tool entry file is required.
+1. `AGENTS.md` holds always-on standing instructions; agent skills hold on-demand, model-invocable procedures in the open `SKILL.md` format. `CLAUDE.md` imports `AGENTS.md`; tool-agnostic agents read `AGENTS.md` natively, so no per-tool entry file is required.
 2. A repeatable, verifiable procedure SHOULD be expressed as a skill rather than appended to `AGENTS.md`. A rule that needs to apply on every turn MAY instead stay in `AGENTS.md`. The PR MUST state the justification when a procedure stays in `AGENTS.md`.
 
 Rules:
-1. Canonical skills MUST live under `.agents/skills/**` as `SKILL.md` files so tool-agnostic agents such as OpenAI Codex discover them.
+1. Canonical skills MUST live under `.agents/skills/**` as `SKILL.md` files so tool-agnostic agents discover them.
 2. Claude Code discovery MUST be provided by a `.claude/skills` symlink targeting `.agents/skills`; skill files MUST NOT be duplicated across the two paths.
 3. Team-owned skill and configuration files MUST be version-controlled: `.agents/skills/**`, the `.claude/skills` symlink, `.claude/agents/**`, and `.claude/settings.json` MUST be committed.
 4. Personal or machine-specific configuration MUST NOT be committed; `.claude/settings.local.json` and equivalent local overrides MUST stay ignored by `.gitignore`.
@@ -477,7 +476,7 @@ Rules:
 6. Every committed skill MUST be a `SKILL.md` file with `name` and `description` frontmatter, and the `description` MUST state when the skill applies.
 7. A committed skill that runs commands SHOULD declare `allowed-tools` scoped to the commands it needs. A skill MUST NOT rely on `allowed-tools` to block destructive Git operations listed in the Git Risk Controls section, because not every agent honors that field. The PR MUST state when a skill omits `allowed-tools`.
 8. A committed skill MUST NOT instruct behavior that relaxes or contradicts any rule in this `AGENTS.md`.
-9. `CLAUDE.md` MUST stay minimal and import `AGENTS.md`. If a per-tool entry file (for example `CODEX.md`) is added, it MUST import or defer to `AGENTS.md` rather than restate its rules.
+9. `CLAUDE.md` MUST stay minimal and import `AGENTS.md`. If a per-tool entry file is added, it MUST import or defer to `AGENTS.md` rather than restate its rules.
 10. `CLAUDE.md` and any per-tool entry file MUST NOT duplicate normative rules from `AGENTS.md`; skill-specific procedures MUST live under `.agents/skills/**`, not in those files.
 
 Verification:
