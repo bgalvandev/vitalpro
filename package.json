@@ -36,7 +36,7 @@
     "prisma:studio": "prisma studio",
     "ai:guard": "node scripts/ai/ai-guard.mjs",
     "dead-code": "knip",
-    "dupes": "jscpd apps libs tools scripts --threshold 0 --ignore \"**/*.spec.ts,**/*.spec.tsx\"",
+    "dupes": "jscpd apps libs tools scripts --format \"typescript,tsx,javascript,jsx\" --threshold 0 --ignore \"**/*.spec.ts,**/*.spec.tsx\"",
     "check": "pnpm nx run-many -t lint,typecheck,test,build --all && pnpm run openapi:lint && pnpm run ai:guard && pnpm run dead-code && pnpm run dupes",
     "affected": "pnpm nx affected -t lint,typecheck,test,build",
     "g:clean-module": "pnpm nx g @vitalpro/tools:clean-module"
