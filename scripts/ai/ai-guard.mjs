@@ -52,13 +52,16 @@ async function listFilesRecursively(dirPath) {
   return files;
 }
 
-function getLayer(filePath) {
-  const normalized = filePath.split(path.sep).join('/');
+function layerFromNormalizedPath(normalized) {
   if (normalized.includes('/src/domain/')) return 'domain';
   if (normalized.includes('/src/application/')) return 'application';
   if (normalized.includes('/src/interface/')) return 'interface';
   if (normalized.includes('/src/infrastructure/')) return 'infrastructure';
   return null;
+}
+
+function getLayer(filePath) {
+  return layerFromNormalizedPath(filePath.split(path.sep).join('/'));
 }
 
 function parseImports(content) {
@@ -83,13 +86,7 @@ function resolveLayerFromImport(importPath, filePath) {
   }
 
   const absoluteFilePath = path.resolve(path.dirname(filePath), importPath);
-  const normalized = absoluteFilePath.split(path.sep).join('/');
-
-  if (normalized.includes('/src/domain/')) return 'domain';
-  if (normalized.includes('/src/application/')) return 'application';
-  if (normalized.includes('/src/interface/')) return 'interface';
-  if (normalized.includes('/src/infrastructure/')) return 'infrastructure';
-  return null;
+  return layerFromNormalizedPath(absoluteFilePath.split(path.sep).join('/'));
 }
 
 function validateFile(filePath, content, errors) {

@@ -89,6 +89,12 @@ android/local.properties
 .cursor/
 .aider*
 
+# Playwright (e2e artifacts)
+test-results/
+playwright-report/
+.playwright/
+playwright/.cache/
+
 # Nx local cache
 .nx/
 

@@ -1,45 +1,35 @@
 # AI Operating Model for VitalPro
 
-This document defines how to maximize AI productivity in this repository while preserving engineering quality.
+How to get high-quality work from AI assistants in this repo without eroding
+engineering standards.
 
-## Objectives
-- Accelerate implementation, refactoring, and review cycles.
-- Preserve Clean Architecture and module boundaries.
-- Keep changes verifiable through automated quality gates.
+## The working protocol lives in a skill
+
+The step-by-step protocol — verify before claiming, no hallucinated APIs, smallest
+correct change, respect the architecture, run the gates before declaring done — is
+the `engineering-discipline` skill (`.agents/skills/engineering-discipline/`). Topic
+skills cover specifics: `frontend-architecture`, `frontend-performance`,
+`frontend-e2e`, `code-quality`, `openapi-contract-update`, `scaffold-module`,
+`commit-check`, `pr-ready`, `fhir-interop-pr`.
+
+Standing rules (always-on) live in `AGENTS.md`; this file and the skills must not
+restate or relax them.
 
 ## High-value AI use cases
+
 1. Implement bounded use cases in existing modules.
-2. Refactor code within a single layer while preserving behavior.
-3. Generate and update tests for domain/application/interface boundaries.
-4. Review pull requests for bugs, regression risk, and boundary violations.
-5. Propose fixes for failing CI jobs with concrete patches.
+2. Refactor within a single layer while preserving behavior.
+3. Generate/update tests at domain/application/interface boundaries.
+4. Review changes for bugs, regressions, and boundary violations.
+5. Propose concrete patches for failing CI jobs.
 
-## Required context for every AI task
-- `AGENTS.md`
-- `README.md`
-- Relevant `project.json`
-- Relevant module files under `src/domain|application|infrastructure|interface`
-- Contract files under `contracts/openapi/**` when API behavior is involved
+## Required context for a task
 
-## Fast execution loop
-1. Gather the context above for the target module.
-2. Execute focused change.
-3. Run `pnpm run ai:guard`.
-4. Run project-specific tests.
-5. Run `pnpm run check` before merge.
+`AGENTS.md`, the relevant `project.json`, the target module's
+`domain|application|infrastructure|interface` files, and `contracts/openapi/**` when
+API behavior is involved.
 
-## Failure recovery loop
-When AI output fails checks:
-1. Capture failing command output.
-2. Ask the agent to fix only failing scope.
-3. Re-run only impacted checks first.
-4. Re-run full check once failures are resolved.
+## Model routing
 
-## Recommended model routing
 - Fast model: formatting, boilerplate, small scoped edits.
-- Strong model: architecture-sensitive edits, regression-prone changes, cross-module refactors.
-
-## Non-negotiables
-
-Defined once in `AGENTS.md` (Core must not depend on Health, no layer-boundary
-shortcuts, no external API contract drift). Follow them there — not duplicated here.
+- Strong model: architecture-sensitive, regression-prone, or cross-module changes.

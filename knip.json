@@ -1,0 +1,50 @@
+{
+  "$schema": "https://unpkg.com/knip@6/schema.json",
+  "workspaces": {
+    ".": {
+      "entry": [
+        "apps/web/src/app/**/{page,layout,template,loading,error,not-found,global-error,route,default,sitemap,robots,manifest,opengraph-image,icon}.{ts,tsx}",
+        "apps/web/next.config.js",
+        "apps/web/postcss.config.js",
+        "apps/web/tailwind.config.ts",
+        "apps/web/eslint.config.mjs",
+        "apps/web/vitest.setup.ts",
+        "apps/web-e2e/playwright.config.ts",
+        "apps/web-e2e/src/**/*.spec.ts",
+        "apps/web-e2e/src/support/*.mjs",
+        "scripts/**/*.mjs"
+      ],
+      "project": [
+        "apps/web/src/**/*.{ts,tsx}",
+        "apps/web-e2e/src/**/*.ts",
+        "scripts/**/*.mjs"
+      ]
+    },
+    "apps/core-api": {
+      "entry": ["src/main.ts"],
+      "project": ["src/**/*.ts"]
+    },
+    "libs/*": {
+      "project": ["src/**/*.ts"]
+    },
+    "tools": {
+      "entry": ["src/index.ts", "src/generators/**/clean-module.ts"],
+      "project": ["src/**/*.ts"]
+    }
+  },
+  "ignoreUnresolved": ["./vitest.setup.ts"],
+  "ignoreDependencies": [
+    "eslint-config-next",
+    "eslint-plugin-import",
+    "eslint-plugin-jsx-a11y",
+    "eslint-plugin-react",
+    "@tailwindcss/postcss",
+    "postcss",
+    "prettier",
+    "@nx/devkit",
+    "@nx/plugin",
+    "pg",
+    "pino-pretty",
+    "tslib"
+  ]
+}

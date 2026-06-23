@@ -1,265 +1,179 @@
 # AGENTS.md
 
 ## Scope
-This document is the mandatory engineering standard for this repository.
-It applies to all contributors (human and AI agents), all modules, and all CI workflows.
+This document is the mandatory engineering standard for this repository. It applies
+to all contributors (human and AI), all modules, and all CI workflows. It holds
+**always-on standing rules**. Repeatable *procedures* live in skills under
+`.agents/skills/**` and are referenced from here, not restated.
+
+The key words **MUST, MUST NOT, REQUIRED, SHALL, SHALL NOT, SHOULD, SHOULD NOT,
+RECOMMENDED, MAY, OPTIONAL** are interpreted per BCP 14 (RFC 2119, RFC 8174) when in
+all capitals.
 
 ## AGENTS.md Rule Writing Standard (Mandatory)
-This standard applies to any change that adds, removes, or modifies normative instructions in any `AGENTS.md` file in this repository tree.
+Applies to any change to normative instructions in any `AGENTS.md` in this tree.
 
-### Normative Language
-The key words **"MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT", "SHOULD", "SHOULD NOT", "RECOMMENDED", "MAY", and "OPTIONAL"** in this document are to be interpreted as described in BCP 14 (RFC 2119 and RFC 8174), when and only when they appear in all capitals.
-
-### Rule Requirements and Validation
 1. Rules MUST be repository-specific, explicit, actionable, and verifiable.
 2. Rules MUST identify scope (repository-wide or path/module-specific).
-3. Rules MUST use one requirement level only (`MUST`/`SHOULD`/`MAY`) per sentence.
-4. Rules using `SHOULD` MUST define acceptable deviation and required justification.
-5. Rules MUST define observable verification (review step, command, file pattern, or CI gate).
+3. Each sentence MUST use one requirement level (`MUST`/`SHOULD`/`MAY`).
+4. A `SHOULD` rule MUST state acceptable deviation and required justification.
+5. Each rule MUST define an observable verification (review step, command, file
+   pattern, or CI gate).
 6. Markdown MUST be valid and pass configured linting.
-7. Mandatory commands documented in AGENTS.md MUST be executable and current.
-8. Rules outdated by workflow/tooling changes MUST be updated in the same PR.
-9. AGENTS.md changes MUST be reviewed for ambiguity, stale references, and contradictions.
+7. Documented mandatory commands MUST be executable and current; rules outdated by
+   tooling changes MUST be updated in the same PR.
 
-### Precedence and Conflicts
-1. When multiple `AGENTS.md` files apply, the nearest file to the edited path takes precedence.
-2. `AGENTS.override.md` takes precedence over `AGENTS.md` at the same directory level.
-3. Direct system, developer, and user instructions override AGENTS.md instructions.
-4. Conflicting rules at the same scope level MUST be resolved in the same PR; unresolved conflicts are merge blockers.
+### Precedence
+1. When multiple `AGENTS.md` files apply, the nearest to the edited path wins.
+2. `AGENTS.override.md` beats `AGENTS.md` at the same level.
+3. Direct system/developer/user instructions override `AGENTS.md`.
+4. Conflicting rules at the same scope MUST be resolved in the same PR; unresolved
+   conflicts are merge blockers.
 
 ## Nested AGENTS.md Activation Rule (Mandatory)
 Scope: repository-wide.
 
-Rules:
-1. A nested `AGENTS.md` MUST be created only when a subdirectory has stable instructions that differ from root standards (for example: different build/test commands, architecture constraints, compliance rules, or deployment workflow).
-2. A nested `AGENTS.md` MUST NOT duplicate root rules verbatim; it MUST document only local deltas and local verification commands.
-3. A nested `AGENTS.md` MUST include a short "Why this file exists" section with the local deviation rationale.
-4. If local divergence is temporary, `AGENTS.override.md` MAY be used instead of introducing permanent nested rules.
-5. When a nested `AGENTS.md` becomes obsolete, it MUST be removed or updated in the same PR that changes the underlying workflow.
+1. Create a nested `AGENTS.md` only when a subdirectory has stable instructions that
+   differ from root standards (build/test commands, architecture constraints,
+   compliance, deployment). Use `AGENTS.override.md` for temporary divergence.
+2. A nested file MUST document only local deltas plus a short "Why this file exists"
+   rationale and local verification — never duplicate root rules.
+3. Obsolete nested guidance MUST be removed or updated in the PR that changes the
+   underlying workflow.
 
-Verification:
-1. Reviewer checks that each new nested `AGENTS.md` contains module-specific deltas and no unnecessary duplication.
-2. Reviewer checks that each local rule has an observable verification step (command, file pattern, or CI gate).
-3. Reviewer checks that temporary divergence uses `AGENTS.override.md` or includes explicit permanence rationale in the PR.
-4. Reviewer checks that stale nested guidance is removed or updated when workflows change.
-
-Reference sources to consult for AGENTS format and best practices:
-- https://agents.md/
-- https://github.com/agentsmd/agents.md
+Verification: reviewer confirms each nested file has module-specific deltas, a
+rationale, and an observable verification step per local rule.
 
 ## Language Standard (Mandatory)
-All technical artifacts MUST be written in English by default:
-- code comments
-- ADRs
-- pull request descriptions
-- commit messages
-- repository standards and architecture docs
-
-Another language MAY be used only for explicit product/content requirements.
-
-Verification:
-1. Reviewer checks changed technical artifacts for English language usage.
-2. Reviewer checks PR description and commit message language for compliance.
+All technical artifacts (code comments, ADRs, PR descriptions, commit messages,
+standards/architecture docs) MUST be written in English by default. Another language
+MAY be used only for explicit product/content requirements. Verification: reviewer
+checks changed artifacts and PR/commit language.
 
 ## Research and Recommendation Coverage Standard (Mandatory)
-Scope: repository-wide for tooling evaluations, architecture option analyses, and recommendation artifacts in `docs/**`, ADRs, issue discussions, and pull request descriptions.
+Scope: tooling evaluations, architecture option analyses, and recommendation
+artifacts in `docs/**`, ADRs, issues, and PR descriptions.
 
-Impact classification:
-1. A recommendation artifact is high-impact when it selects or replaces a production platform, changes security or compliance posture, changes production cost model, or changes CI/CD execution platform.
-2. A recommendation artifact is high-impact when it asks for a best or default option for current use (for example "best option", "mejor opcion", "today", or "hoy"), or when it selects or replaces the local development or CI emulation stack for cloud services.
-3. A recommendation artifact is low-impact when it does not meet any high-impact condition.
+Impact: an artifact is **high-impact** when it selects/replaces a production
+platform, changes security/compliance posture or production cost model, changes the
+CI/CD execution platform, asks for the best/default option for current use, or
+selects/replaces the local-dev or CI emulation stack. Otherwise it is **low-impact**.
 
-Rules:
-1. Every recommendation artifact MUST declare `high-impact` or `low-impact` with one rationale sentence.
-2. Every high-impact recommendation artifact MUST evaluate at least one option from each category: official or vendor-native, commercial, and open-source emerging.
-3. Every high-impact recommendation artifact MUST include a side-by-side comparison that covers capabilities, limitations, cost or licensing model, and maturity signals.
-4. Every high-impact recommendation artifact MUST include at least one explicit risk or unknown for each option and a final recommendation tied to a stated decision context.
-5. Every recommendation artifact that uses external sources MUST include consultation dates in `YYYY-MM-DD` format.
-6. Every low-impact recommendation artifact MUST include at least two options and a one-sentence tradeoff summary.
+1. Every recommendation artifact MUST declare `high-impact` or `low-impact` with a
+   one-sentence rationale.
+2. A high-impact artifact MUST evaluate at least one option from each of:
+   official/vendor-native, commercial, and open-source emerging; MUST include a
+   side-by-side comparison (capabilities, limitations, cost/licensing, maturity);
+   and MUST give one explicit risk/unknown per option plus a final recommendation
+   tied to a stated decision context.
+3. A low-impact artifact MUST include at least two options and a one-sentence
+   tradeoff summary.
+4. Any artifact citing external sources MUST include consultation dates in
+   `YYYY-MM-DD`.
 
-Verification:
-1. Reviewer checks each recommendation artifact includes impact classification and one-sentence rationale.
-2. Reviewer checks high-impact recommendation artifacts include all three required categories, comparison coverage, one explicit risk or unknown per option, and a final recommendation linked to a clear decision context.
-3. Reviewer checks recommendation artifacts that cite external sources include consultation dates in `YYYY-MM-DD` format, and reviewer checks low-impact recommendation artifacts include at least two options and a one-sentence tradeoff summary.
+Verification: reviewer checks classification, required coverage, per-option risks,
+final recommendation, and consultation dates.
 
 ## Commit Message Standard (Mandatory)
-Commit messages MUST follow **Conventional Commits 1.0.0**:
+Commit messages MUST follow **Conventional Commits 1.0.0**.
 
-```txt
-<type>[optional scope]: <description>
+1. Every commit MUST start with a valid type: `feat`, `fix`, `refactor`, `perf`,
+   `docs`, `test`, `build`, `ci`, `chore`, `revert`.
+2. Scope SHOULD map to an Nx project/module; deviation is acceptable when no stable
+   scope exists and the PR justifies it.
+3. Breaking changes MUST use `!` and/or a `BREAKING CHANGE:` footer.
+4. Subjects MUST be concise, specific, English; one commit SHOULD be one logical
+   change (emergency-hotfix deviation MUST be justified in the PR).
+5. Commit messages MUST NOT include authorship trailers (e.g. `Co-Authored-By:`).
+6. `WIP`/`tmp`/unclear messages MUST NOT be used on shared branches.
 
-[optional body]
-[optional footer(s)]
-```
-
-Rules:
-1. Every commit MUST start with a valid type.
-2. Allowed default types: `feat`, `fix`, `refactor`, `perf`, `docs`, `test`, `build`, `ci`, `chore`, `revert`.
-3. Scope SHOULD map to an Nx project or module.
-4. Breaking changes MUST be marked with `!` in the header and/or a `BREAKING CHANGE:` footer.
-5. Subject lines MUST be concise, specific, and written in English.
-6. One commit SHOULD represent one logical change.
-7. `WIP`, `tmp`, or unclear commit messages MUST NOT be used in shared branches.
-8. Commit messages MUST NOT include authorship trailers (for example `Co-Authored-By:` or `Co-authored-by:`).
-9. Non-compliant commit messages MUST be treated as merge blockers.
-
-Acceptable deviation:
-1. Deviation from scope mapping is acceptable when no stable Nx project/module scope exists; the PR MUST include explicit justification.
-2. Deviation from one-logical-change-per-commit is acceptable for emergency hotfixes; the PR MUST include explicit justification.
-
-Verification:
-1. Reviewer checks commit headers against Conventional Commits format.
-2. Reviewer checks scope mapping and deviation justification when applicable.
-3. CI or repository commit lint gate (when configured) MUST pass.
-
-Examples:
-- `feat(scheduling-api): add waitlist auto-fill use case`
-- `fix(billing): prevent duplicate charge retries`
-- `refactor(auth)!: remove legacy token format`
+Non-compliant messages are merge blockers. Use the `commit-check` skill before
+committing. Examples: `feat(scheduling-api): add waitlist auto-fill use case`,
+`fix(billing): prevent duplicate charge retries`, `refactor(auth)!: remove legacy
+token format`.
 
 ## Git Risk Controls and Authorization (Mandatory)
-### High-Risk Commands (Explicit Authorization Required)
-The following operations require explicit written approval from a repository owner or designated maintainer before execution on shared work:
-- `git reset --hard ...`
-- `git clean -fd`, `git clean -fdx`, or equivalent destructive clean variants
-- `git checkout -- <path>` / `git restore --worktree --source=... <path>` when discarding local changes
-- `git rebase -i` on branches already pushed for collaboration
-- `git push --force` or `git push --mirror`
-- branch/tag deletions on remote (`git push origin --delete ...`)
+### High-risk commands (explicit owner/maintainer approval required on shared work)
+`git reset --hard`, destructive `git clean -fd[x]`, discarding local changes via
+`git checkout -- <path>`/`git restore --worktree`, `git rebase -i` on pushed
+branches, `git push --force`/`--mirror`, and remote branch/tag deletions.
 
-### Safer Alternatives (Default)
+### Safer defaults
 1. Prefer `git revert` to undo published commits.
-2. Prefer `git restore`/`git reset` non-destructive modes for local corrections.
-3. If a force update is unavoidable, use `git push --force-with-lease` (never plain `--force`) and only on non-protected branches with explicit approval.
+2. Prefer non-destructive `git restore`/`git reset` for local corrections.
+3. If a force update is unavoidable, use `git push --force-with-lease` (never plain
+   `--force`), only on non-protected branches, with explicit approval.
+4. Before a destructive op: confirm the branch (`git status`), back up history
+   (`git branch backup/<date>-<name> HEAD`), dry-run cleans (`git clean -n`), and
+   record the reason in the PR/task.
 
-### Protected Branch Policy
-1. `main` and release branches MUST be protected in the Git hosting platform.
-2. Force push and branch deletion MUST stay disabled for protected branches.
-3. Protected branches MUST require pull requests and required status checks.
-4. Merge commits for pull requests targeting protected branches MUST stay disabled in repository settings.
-5. Squash merge for pull requests targeting protected branches MUST stay enabled in repository settings.
-6. Required status checks for protected branches MUST require branches to be up to date before merging.
+### Protected branch policy
+1. `main` and release branches MUST be protected; force push and deletion MUST stay
+   disabled.
+2. Protected branches MUST require pull requests and required status checks, with
+   "branches up to date before merging" (strict) enabled.
+3. Merge commits MUST be disabled and squash merge MUST be enabled for PRs targeting
+   protected branches.
 
-### Pull Request Branch and Merge Strategy (Mandatory)
-Scope: repository-wide for all pull requests targeting protected branches.
+Verification: `gh api repos/bgalvandev/vitalpro/branches/main/protection --jq
+'.required_status_checks.strict'` returns `true`; repo settings keep squash on and
+merge commits off.
 
-Rules:
-1. Contributors MUST create and switch to a non-protected working branch before the first code edit for a feature, fix, refactor, test, docs, build, ci, or chore change.
-2. Contributors MUST NOT commit those changes directly on `main` or release branches.
-3. The final squash commit subject on the protected branch MUST follow Conventional Commits and MUST include the pull request number suffix in the form `(#<number>)`.
-4. Pull request titles MUST be written so they can be used as the squash commit subject with no additional manual rewrite.
-5. After a pull request is merged, contributors MUST synchronize local `main` with `git pull --rebase origin main` before starting the next change.
+### PR branch, merge, and readiness (Mandatory)
+Scope: all PRs targeting protected branches. Use the `pr-ready` skill to run the
+readiness sequence; the normative rules are:
 
-Verification:
-1. Reviewer checks the PR source branch is not `main` and not a release branch.
-2. Reviewer checks repository settings keep squash merge enabled and merge commits disabled for protected branches.
-3. Reviewer checks the merged commit on the protected branch follows Conventional Commits and includes `(#<number>)`.
-4. Reviewer checks post-merge synchronization evidence in task logs or command history when local continuation work is performed.
+1. Create a non-protected working branch before the first edit; never commit feature
+   work directly on `main`/release branches.
+2. The squash commit subject MUST follow Conventional Commits and include the PR
+   number suffix `(#<number>)`; PR titles MUST be usable as that subject verbatim.
+3. After merge, sync local `main` with `git pull --rebase origin main` before the
+   next change.
+4. Before reporting a PR ready/merge-able, contributors MUST confirm the branch
+   contains current `origin/main` (`git fetch origin` +
+   `git merge-base --is-ancestor origin/main HEAD`) and inspect GitHub state
+   (`gh pr view <n> --json mergeStateStatus,statusCheckRollup,headRefName,baseRefName`).
+5. Contributors MUST NOT report a PR ready when `mergeStateStatus` is `DIRTY`, MUST
+   re-query when `UNKNOWN`, and MUST NOT report checks "running" when
+   `statusCheckRollup` is `null`.
+6. The PR URL, merge state, and required check names MUST be recorded in the task
+   trail when finishing PR work.
 
-### Pull Request Readiness and Check Visibility (Mandatory)
-Scope: repository-wide for all pull requests targeting protected branches.
-
-Rules:
-1. Contributors MUST run `git fetch origin` before creating a pull request, updating a pull request, or reporting a pull request as ready for review or merge.
-2. Contributors MUST confirm the pull request branch contains current `origin/main` before reporting readiness with `git merge-base --is-ancestor origin/main HEAD`.
-3. Contributors MUST update the pull request branch when `git merge-base --is-ancestor origin/main HEAD` fails.
-4. Contributors MUST inspect GitHub mergeability and checks before reporting readiness with `gh pr view <number> --json mergeStateStatus,statusCheckRollup,headRefName,baseRefName`.
-5. Contributors MUST NOT report a pull request as ready when `mergeStateStatus` is `DIRTY`.
-6. Contributors MUST re-query or wait when `mergeStateStatus` is `UNKNOWN`.
-7. Contributors MUST NOT report required checks as running when `statusCheckRollup` is `null`.
-8. Contributors MUST wait for required checks to appear as `QUEUED`, `IN_PROGRESS`, or `COMPLETED` before reporting that checks are running.
-9. Contributors MUST record the pull request URL, merge state, and required check names in the task trail when finishing pull request work.
-
-Verification:
-1. Reviewer runs `git fetch origin` and `git merge-base --is-ancestor origin/main HEAD` on the pull request branch.
-2. Reviewer runs `gh pr view <number> --json mergeStateStatus,statusCheckRollup,headRefName,baseRefName` and confirms the pull request is not `DIRTY`.
-3. Reviewer checks the task trail for the pull request URL, merge state, and required check names.
-4. Maintainer checks protected branch settings with `gh api repos/bgalvandev/vitalpro/branches/main/protection --jq '.required_status_checks.strict'` and confirms the value is `true`.
-
-### Pull Request Merge Block Triage (Mandatory)
-Scope: repository-wide for pull requests targeting protected branches.
-
-Rules:
-1. When GitHub reports `Merging is blocked` while required status checks are passing, contributors MUST inspect branch protection requirements, unresolved review threads, and security/code-scanning conversations before adding corrective code.
-2. Contributors MUST treat unresolved review threads as potential merge blockers when branch protection requires conversation resolution.
-3. Contributors MUST fix true-positive security or code-scanning findings before resolving the related review thread.
-4. Contributors MUST resolve or dismiss false-positive security or code-scanning findings with written justification in the pull request thread or alert dismissal comment.
-5. Contributors MUST record the merge-block cause and resolution in the PR/task trail when the block was not caused by a failing status check.
-
-Verification:
-1. Reviewer checks that a PR blocked with passing checks includes evidence of review-thread and code-scanning triage.
-2. Reviewer checks each dismissed false-positive security or code-scanning finding includes written justification.
-3. Reviewer checks no unrelated code patches were added solely to clear an administrative merge block.
-
-### Safety Checklist Before Risky Git Operations
-1. Run `git status` and confirm target branch.
-2. Create a backup ref before destructive history changes (for example `git branch backup/<date>-<name> HEAD`).
-3. For clean operations, run a dry-run first (`git clean -n`).
-4. Record the reason and executed command in the PR/task for auditability.
+### Merge-block triage (Mandatory)
+When GitHub reports `Merging is blocked` while required checks pass, inspect branch
+protection, unresolved review threads, and code-scanning conversations before adding
+code. Fix true-positive security/code-scanning findings; dismiss false positives
+with written justification in the thread. Do not add unrelated patches to clear an
+administrative block. Record the cause and resolution in the PR/task trail.
 
 ## Repository Platform Standard (Mandatory)
-This repository standard is **Nx monorepo + pnpm workspaces**.
+Standard: **Nx monorepo + pnpm workspaces**. Root MUST contain `nx.json`,
+`pnpm-workspace.yaml`, `package.json` (with a pinned `packageManager`), and
+`pnpm-lock.yaml`.
 
-### Required Root Artifacts
-The repository root MUST contain:
-- `nx.json`
-- `pnpm-workspace.yaml`
-- `package.json` (including a pinned `packageManager` field)
-- `pnpm-lock.yaml`
-
-### Toolchain and Package Manager Rules
-1. Use Node.js LTS.
-2. Use pnpm via Corepack.
-3. Pin pnpm through `packageManager` in root `package.json`.
-4. Do not manually edit lockfiles.
-5. Commit lockfile updates together with dependency changes.
-
-### Workspace Rules
-1. Internal workspace dependencies MUST use the `workspace:` protocol.
-2. Every project MUST be discoverable by pnpm/Nx via workspace config and/or `project.json`.
-3. Avoid cross-project relative imports that bypass project boundaries.
-4. Install dependencies from repository root.
-5. Keep one shared workspace lockfile.
-
-### Nx Task Orchestration Rules
-1. Run monorepo tasks through Nx (`pnpm nx ...`).
-2. Each project MUST define clear targets (at minimum when applicable):
-   - `build`
-   - `lint`
-   - `test`
-   - `typecheck`
-3. Prefer `nx run`, `nx run-many`, and `nx affected` over ad-hoc per-package task orchestration.
-4. Keep `defaultBase` configured in `nx.json` (normally `main`).
-5. In CI, explicitly set `NX_BASE` and `NX_HEAD` for affected runs.
-
-### Caching Rules
-1. Enable caching only for deterministic targets.
-2. Configure caching with `targetDefaults`, `namedInputs`, `inputs`, and `outputs`.
-3. Non-deterministic targets (time/network side effects) MUST NOT rely on cache correctness.
-4. Use `--skip-nx-cache` only for troubleshooting.
-
-### Dependency Boundary Enforcement in Nx
-1. Tag projects (for example by `scope:`, `type:`, `layer:`, `domain:`).
-2. Enforce import constraints with `@nx/enforce-module-boundaries`.
-3. If language-agnostic graph enforcement is adopted, use Nx Conformance rules.
-4. Boundary violations are merge blockers.
-
-### Version Hygiene
-1. Keep `nx` and official `@nx/*` plugins in sync.
-2. Add official Nx plugins with `nx add`.
-3. Upgrade Nx and official plugins with `nx migrate`.
-4. Do not manually drift official Nx package versions.
+1. Use Node.js LTS and pnpm via Corepack; do not hand-edit lockfiles; commit lockfile
+   changes with the dependency change.
+2. Internal deps MUST use the `workspace:` protocol; every project MUST be
+   discoverable via workspace config and/or `project.json`; install from the root.
+3. Run tasks through Nx; prefer `nx run`/`run-many`/`affected`. Each project MUST
+   define `build`, `lint`, `test`, and `typecheck` targets when applicable.
+4. Keep `defaultBase` in `nx.json` (`main`); in CI set `NX_BASE`/`NX_HEAD` for
+   affected runs.
+5. Cache only deterministic targets via `targetDefaults`/`inputs`/`outputs`;
+   `--skip-nx-cache` is for troubleshooting only.
+6. Tag projects (`surface:`, `type:`, `layer:`, `scope:`) and enforce import
+   constraints with `@nx/enforce-module-boundaries`; boundary violations are merge
+   blockers.
+7. Keep `nx` and `@nx/*` plugins in sync; add with `nx add`, upgrade with
+   `nx migrate`; do not drift versions manually.
 
 ## Mandatory Architecture Standard
-We use **pragmatic Clean Architecture per module**.
+**Pragmatic Clean Architecture per module.** This standard is non-negotiable; PRs
+that violate it MUST be rejected. Procedures: the `backend-architecture` and
+`backend-performance` skills for `apps/core-api` and `libs/**`; the
+`frontend-architecture` and `frontend-performance` skills for `apps/web`.
 
-Each module MAY contain:
-- `domain/`
-- `application/`
-- `infrastructure/`
-- `interface/`
-
-Dependency direction is mandatory:
+Dependency direction (mandatory; enforced by `pnpm run ai:guard`):
 
 ```txt
 interface -> application -> domain
@@ -267,338 +181,323 @@ infrastructure -> application/domain
 domain -> (no inward custom dependency)
 ```
 
-Rules:
-1. `domain` MUST NOT depend on framework, database, HTTP, queues, or external SDKs.
-2. `application` orchestrates use cases and depends only on `domain` plus ports/contracts.
-3. `infrastructure` implements technical details (DB, external APIs, queues, providers).
-4. `interface` exposes transport concerns (HTTP handlers/controllers, DTOs, serializers).
-5. Dependencies always point inward toward business rules.
+Layer responsibilities:
+- **domain** — entities, value objects, domain services, invariants, events;
+  business language only. No framework/ORM/HTTP/IO. Deterministic and unit-testable
+  without network/DB.
+- **application** — use cases (`*.use-case.ts`) and app services; defines
+  ports/interfaces for repositories and providers; owns transaction boundaries via
+  abstractions.
+- **infrastructure** — adapters for persistence/messaging/storage/external APIs;
+  maps persistence/network models to/from domain; MUST NOT leak persistence models
+  to `application`/`interface`. Prisma Client is the default ORM (alternative by
+  ADR); raw SQL/TypedSQL/query builders stay inside `infrastructure`.
+- **interface** — controllers/handlers, request/response DTOs, validation wiring,
+  transport mapping. No business rules.
 
-This standard is non-negotiable. PRs that violate it MUST be rejected.
-
-## Simplicity and Proportionality Standard (Mandatory)
-Scope: repository-wide for all code changes.
-
-Rules:
-1. Changes MUST use the smallest code path, module scope, and layer surface that satisfies the requirement while preserving repository architecture rules.
-2. Contributors MUST NOT introduce new abstractions, adapters, services, modules, shared utilities, or generators for speculative future reuse.
-3. Additional files MAY be added when they preserve Clean Architecture boundaries, isolate external side effects, or test changed behavior.
-
-Verification:
-1. Reviewer checks that new files and abstractions are directly required by the changed behavior.
-2. Reviewer checks that the solution does not add speculative structure unrelated to the current requirement.
-
-## Minimum Module Template
-
-Use this as a default template inside a project:
+Default module template:
 
 ```txt
 <project-root>/src/<module>/
-  domain/
-    appointment.entity.ts
-    scheduling.rules.ts
-
-  application/
-    create-appointment.use-case.ts
-
-  infrastructure/
-    appointment.repository.ts
-    prisma-appointment.mapper.ts
-
-  interface/
-    scheduling.controller.ts
-    create-appointment.dto.ts
+  domain/        appointment.entity.ts        scheduling.rules.ts
+  application/   create-appointment.use-case.ts
+  infrastructure/ appointment.repository.ts    prisma-appointment.mapper.ts
+  interface/     scheduling.controller.ts      create-appointment.dto.ts
 ```
 
-## Layer Responsibilities
-### domain
-- Owns entities, value objects, domain services, invariants, domain events.
-- Contains business language and rules only.
-- No ORM decorators or framework inheritance.
+## Simplicity and Proportionality Standard (Mandatory)
+Scope: repository-wide.
 
-### application
-- Owns use cases (`*.use-case.ts`) and application services.
-- Defines ports/interfaces for repositories and external providers.
-- Manages transaction boundaries via abstractions (never raw framework objects).
+1. Changes MUST use the smallest code path, module scope, and layer surface that
+   satisfies the requirement while preserving the architecture.
+2. Contributors MUST NOT add abstractions, adapters, services, modules, shared
+   utilities, or generators for speculative future reuse.
+3. New files MAY be added when they preserve Clean Architecture boundaries, isolate
+   external side effects, or test changed behavior.
 
-### infrastructure
-- Owns adapters for persistence, messaging, storage, external APIs.
-- Maps persistence/network models to domain and back.
-- Must not leak persistence models to `application` or `interface`.
-- Uses Prisma Client as the default ORM adapter for normal relational persistence unless an ADR approves another ORM.
-- Keeps raw SQL, TypedSQL, query builders, and database-specific optimizations inside `infrastructure` adapters.
-
-### interface
-- Owns controllers/handlers, request-response DTOs, validation wiring.
-- Performs transport mapping DTO <-> application command/query models.
-- Must not contain business rules.
+Verification: reviewer confirms new files/abstractions are required by the changed
+behavior, not speculative. The `engineering-discipline` skill is the working
+protocol for this.
 
 ## VitalPro Product Topology Standard (Mandatory)
-Scope: repository-wide for module boundaries, contracts, architecture docs, and dependency decisions.
+Scope: module boundaries, contracts, architecture docs, dependency decisions.
 
-Rules:
-1. The platform MUST be modeled as two product surfaces: `VitalPro Core` and `VitalPro Health`.
-2. `VitalPro Core` MUST remain vertical-agnostic for appointment-based service businesses.
-3. `VitalPro Core` MUST NOT depend on health-only semantics, health-only modules, or FHIR artifacts.
-4. `VitalPro Health` MUST be treated as a vertical extension that can depend on Core capabilities.
-5. `VitalPro Health` MAY introduce healthcare-specific modules such as patients, clinical encounters, consents, and clinical observations.
-6. Cross-surface dependencies MUST point from Health to Core when shared behavior is required.
-7. Reverse dependencies from Core to Health MUST be treated as merge blockers.
-8. FHIR usage MUST be constrained to Health interoperability boundaries.
-9. FHIR artifacts MUST NOT be used as the governing internal domain model for the entire platform.
-10. Health internal domain models MAY use non-FHIR structures when they are mapped at interoperability boundaries.
+1. The platform is modeled as two surfaces: **VitalPro Core** (vertical-agnostic for
+   appointment-based service businesses) and **VitalPro Health** (a vertical
+   extension that MAY depend on Core).
+2. Core MUST NOT depend on Health-only semantics, modules, or FHIR artifacts; reverse
+   (Core→Health) dependencies are merge blockers. Cross-surface dependencies MUST
+   point Health→Core.
+3. Health MAY add healthcare modules (patients, encounters, consents, observations)
+   and MAY use non-FHIR internal models mapped at interoperability boundaries.
+4. FHIR usage MUST be constrained to Health interoperability boundaries and MUST NOT
+   be the governing internal domain model.
 
-Verification:
-1. Reviewer checks changed modules and confirms each one is classified as Core or Health in the PR description.
-2. Reviewer checks import direction in changed files and rejects any Core dependency on Health.
-3. Reviewer checks FHIR-specific artifacts and PR evidence are justified as Health interoperability work.
-4. CI gate runs the affected validation command defined in "CI Execution Guidance" and MUST pass for affected projects.
+Verification: reviewer classifies each changed module as Core/Health in the PR,
+checks import direction (rejecting Core→Health), and confirms FHIR artifacts are
+Health interop work. CI runs the affected validation command (see "CI Execution
+Guidance").
 
 ## Stack Baseline (2026)
-Use this default unless an ADR approves an exception.
+Default unless an ADR approves an exception.
 
-### Monorepo and Tooling
-- Monorepo orchestration: **Nx**
-- Package manager: **pnpm workspaces**
-- Language: **TypeScript** with `"strict": true`
+- Monorepo: **Nx**; package manager: **pnpm workspaces**; language: **TypeScript**
+  `"strict": true`.
+- Web: **Next.js (App Router) + React + TypeScript**; styling **Tailwind CSS**; UI as
+  repository-owned source components. The **React Compiler is enabled** (see Frontend
+  Standard).
+- Mobile: React Native + Expo + TypeScript.
+- Backend: Node.js services (REST/OpenAPI when external clients are expected);
+  boundary validation with **Zod**.
+- Data: **PostgreSQL**, **Prisma** (Drizzle by ADR), versioned migrations deployed via
+  CI/CD; Redis when needed.
+- Observability: structured logs, error tracking, traces for critical flows.
 
-### Product Stack (Default)
-- Web: Next.js + React + TypeScript
-- Styling: Tailwind CSS
-- UI component strategy: repository-owned source components (for example shadcn/ui-style generated components)
-- Mobile: React Native + Expo + TypeScript
-- Backend: Node.js services (REST/OpenAPI when external clients are expected)
-- Validation: boundary validation for all external input with schema-based DTO validation (Zod by default)
-- Database: PostgreSQL
-- ORM: Prisma (or Drizzle by ADR)
-- Migrations: versioned migrations in source control; deploy via CI/CD
-- Cache/queue: Redis when needed
-- Observability: structured logs, error tracking, traces for critical flows
+## Frontend Architecture and Rendering Standard (Mandatory)
+Scope: `apps/web/**`. Procedures: `frontend-architecture` and `frontend-performance`
+skills.
 
-## Frontend and API Contract Standard (Mandatory)
-Scope: repository-wide for `src/**/interface/**`, `src/**/application/**`, `apps/**`, and `contracts/openapi/**`.
+1. Web UI MUST follow per-module Clean Architecture (`apps/web/src/<module>/{domain,
+   application,infrastructure,interface}`), mirroring `apps/web/src/appointments`.
+   `app/**` route files are composition roots and MUST NOT hold business logic.
+2. Components MUST be Server Components by default; `'use client'` MUST be placed only
+   on the leaf component that needs interactivity/browser APIs — never on layouts,
+   pages, or containers.
+3. UI MUST receive domain types, not raw API/DTO/ORM shapes; the `infrastructure`
+   adapter MUST validate external responses (Zod) and map to domain before the UI.
+4. One exported component per file; component files SHOULD stay under ~150 lines —
+   when exceeded, extract sub-components/hooks (justify any deliberate exception in
+   the PR). Generic `utils.ts`/`service.ts` names MUST NOT be used.
+5. Manual memoization (`useMemo`/`useCallback`/`React.memo`) MUST NOT be added by
+   default; rely on the React Compiler and add manual memo only with a
+   Profiler-measured reason recorded in a comment.
+6. Lists over ~500 items MUST be virtualized; lists over ~100 items SHOULD be
+   virtualized (deviation justified in the PR).
 
-Rules:
-1. Web interface projects MUST use Tailwind CSS as the default styling system.
-2. Shared UI components MUST be committed as repository-owned source files.
-3. Shared UI components MUST NOT be consumed as opaque binary bundles.
-4. External input boundaries MUST use Zod schemas by default.
-5. Any alternative to Zod MUST be approved by ADR before merge.
-6. Internal TypeScript-only APIs MAY use tRPC.
-7. APIs consumed by external clients MUST publish REST contracts in OpenAPI 3.1.x or 3.2.x under `contracts/openapi/**`.
-8. OpenAPI contracts MUST be versioned and updated in the same PR that changes the external API behavior.
-9. When the contract is generated from code-level schemas (for example Zod via `@fastify/swagger`), the generated artifact MUST be committed under `contracts/openapi/**` and regenerated in the same PR that changes API behavior.
+Verification: `pnpm run ai:guard` and `pnpm nx lint web` pass (the
+`eslint-plugin-react-hooks` Rules-of-React/React-Compiler rules are the automated
+gate); reviewer checks `'use client'` placement, file size, no raw-shape leakage, and
+virtualization on large lists.
 
-Acceptable deviation:
-1. OpenAPI 3.2.x specific features MAY be used when no code-generation toolchain emits them; the PR MUST state why the contract is hand-authored instead of generated.
+## API Contract and Response Shape Standard (Mandatory)
+Scope: `src/**/{interface,application,infrastructure}/**`, `apps/**/src/**`,
+`libs/**/src/**`, `contracts/openapi/**`. Procedure: `openapi-contract-update` skill.
 
-Verification:
-1. Reviewer checks web projects for Tailwind configuration (`tailwind.config.*` and stylesheet integration).
-2. Reviewer checks component libraries are source-controlled in the repository tree.
-3. Reviewer checks boundary validators use Zod schemas in DTO/interface entry points.
-4. Reviewer checks ADR link when a non-Zod validator is introduced.
-5. Reviewer checks external API changes include OpenAPI updates under `contracts/openapi/**`.
-6. CI gate runs the affected validation command defined in "CI Execution Guidance" and MUST pass for affected projects.
+1. External input boundaries MUST validate with **Zod** (alternatives by ADR);
+   internal TypeScript-only APIs MAY use tRPC.
+2. APIs consumed by external clients MUST publish REST contracts in OpenAPI 3.1.x or
+   3.2.x under `contracts/openapi/**`, versioned and updated in the same PR that
+   changes external API behavior. Code-generated contracts MUST be regenerated and
+   committed in that PR; hand-authored 3.2.x usage MUST state why in the PR.
+3. External responses MUST be explicit response DTOs or documented OpenAPI schemas
+   and MUST NOT expose Prisma models, ORM entities, persistence records, or unbounded
+   object graphs.
+4. Collection endpoints MUST return list-oriented DTOs (only fields the collection
+   needs), MUST be paginated/cursored or have an explicitly bounded limit in the
+   contract, and MUST document ordering when paginated. Detail endpoints MUST use
+   separate detail DTOs when extra fields are required.
+5. Field expansion MUST use documented view variants or allowlisted field masks; it
+   MUST NOT accept arbitrary client-controlled ORM `select`/`include`.
+6. Prisma is the default query mechanism; read paths MUST use explicit `select` or
+   intentionally bounded `include`. Raw SQL/TypedSQL/db-specific adapters MAY be used
+   for measured hot paths/reporting/native features, MUST live behind an
+   `infrastructure` adapter/port, and MUST carry a comment or test name stating the
+   reason.
+7. Adding response fields MUST update the OpenAPI contract in the same PR when
+   externally consumed; removing/renaming/broadening fields MUST be treated as a
+   contract change and evaluated for backwards compatibility.
+8. Web projects MUST use Tailwind CSS; shared UI MUST be committed source files, never
+   opaque binary bundles.
+9. Success responses MUST use tailored, flat, per-use-case DTOs (a collection envelope
+   plus a separate detail DTO). Any other response paradigm requires an ADR justifying
+   a specific consumer. Canonical shapes live in the `api-response-patterns` skill.
+10. Error responses MUST use RFC 9457 Problem Details with the
+    `application/problem+json` content type and at least `type`, `title`, and
+    `status`; handlers MUST NOT return ad-hoc error shapes. Procedure: the
+    `api-response-patterns` skill.
 
-## API Query and Response Shape Standard (Mandatory)
-Scope: repository-wide for `src/**/interface/**`, `src/**/application/**`, `src/**/infrastructure/**`, `apps/**/src/**`, `libs/**/src/**`, and `contracts/openapi/**`.
+Verification: reviewer checks explicit DTOs/schemas, bounded+ordered collections,
+flat per-use-case response shape, RFC 9457 error bodies, explicit Prisma `select`,
+infra-confined raw SQL with stated reason, and `contracts/openapi/**` updates;
+contract/interface tests assert both the success-DTO shape and the Problem Details
+error shape. CI runs the affected validation command and `openapi:lint`.
 
-Rules:
-1. External API responses MUST be explicit response DTOs or documented OpenAPI schemas designed for the use case.
-2. External API responses MUST NOT expose Prisma models, ORM entities, persistence records, or unbounded domain object graphs.
-3. Collection endpoints MUST return list-oriented DTOs that contain only fields required by the collection use case.
-4. Detail endpoints MUST return detail-oriented DTOs separate from collection DTOs when additional fields are required.
-5. Collection endpoints MUST use pagination, cursoring, or an explicitly bounded result limit in the contract.
-6. Collection endpoints MUST document ordering semantics when pagination or cursoring is used.
-7. API field expansion MUST use documented view variants or allowlisted field masks in the interface contract.
-8. API field expansion MUST NOT accept arbitrary client-controlled ORM `select` or `include` structures.
-9. Prisma Client queries that serve API read paths MUST use explicit `select` or intentionally bounded `include` clauses.
-10. Prisma Client MUST be the default persistence query mechanism for normal CRUD, lookup, and bounded relational reads.
-11. Raw SQL, Prisma TypedSQL, or database-specific query adapters MAY be used for measured hot paths, complex reporting queries, database-native features, or query plans that Prisma cannot express efficiently.
-12. Raw SQL, Prisma TypedSQL, or database-specific query adapters MUST live behind an `infrastructure` adapter or repository port.
-13. Raw SQL, Prisma TypedSQL, or database-specific query adapters MUST include a code comment or test name that states the performance, query-plan, or feature reason.
-14. API changes that add response fields MUST update the OpenAPI contract in the same PR when the API is externally consumed.
-15. API changes that remove, rename, or broaden response fields MUST be treated as contract changes and evaluated for backwards compatibility.
+## Code Quality Gates (Mandatory)
+Scope: repository-wide. Procedure: `code-quality` skill.
 
-Verification:
-1. Reviewer checks changed interface handlers and DTO files for explicit response DTOs or OpenAPI schemas.
-2. Reviewer checks changed collection endpoints for pagination, ordering, and bounded response shape.
-3. Reviewer checks changed Prisma read queries for explicit `select` or intentionally bounded `include` clauses.
-4. Reviewer checks raw SQL, Prisma TypedSQL, and database-specific query adapters are confined to `infrastructure` and include the documented reason.
-5. Reviewer checks external API response shape changes are reflected under `contracts/openapi/**`.
-6. Interface contract tests check response bodies for the intended list or detail DTO shape.
+1. Dead code MUST be removed: `pnpm run dead-code` (knip) MUST pass; a genuinely-used
+   dependency that knip cannot import-trace MAY be added to `knip.json`
+   `ignoreDependencies` only with PR justification.
+2. Copy-paste duplication MUST NOT be introduced: `pnpm run dupes` (jscpd, enforced at
+   `--threshold 0` over `apps libs tools scripts`, tests excluded) MUST report zero
+   clones. Shared logic MUST be extracted into the owning layer, not a speculative
+   utility (see Simplicity Standard).
+3. Both gates run inside `pnpm run check` and the CI `quality` job and MUST pass.
+
+Verification: `pnpm run dead-code` and `pnpm run dupes` exit 0; reviewer checks any
+new ignore entry is justified.
 
 ## CI and Supply Chain Security Standard (Mandatory)
-Scope: repository-wide for `.github/workflows/**`, `.github/dependabot.yml`, and deployment workflows.
+Scope: `.github/workflows/**`, `.github/dependabot.yml`, deployment workflows.
 
-Rules:
-1. The repository MUST run GitHub Actions workflows on pull requests for lint, typecheck, test, and build validation.
-2. Code scanning MUST be enabled with CodeQL using default or advanced setup.
-3. Dependency update automation MUST be configured through `.github/dependabot.yml`.
-4. Production deployments MUST use protected GitHub Environments with required reviewers.
-5. Workflow credentials MUST be stored in GitHub Secrets.
-6. Workflow credentials MUST NOT be committed in plaintext.
+1. GitHub Actions MUST run lint, typecheck, test, and build validation on pull
+   requests.
+2. CodeQL code scanning MUST be enabled and run in PR/default-branch contexts.
+3. Dependency update automation MUST be configured via `.github/dependabot.yml` for
+   active ecosystems.
+4. Production deployments MUST use protected GitHub Environments with required
+   reviewers.
+5. Workflow credentials MUST be stored in GitHub Secrets and MUST NOT be committed in
+   plaintext.
 
-Verification:
-1. Reviewer checks `.github/workflows/*.yml` includes `pull_request` triggers for validation workflows.
-2. Reviewer checks CodeQL workflow exists and runs in PR/default-branch contexts.
-3. Reviewer checks `.github/dependabot.yml` exists and covers active package ecosystems.
-4. Maintainer checks production environment protection rules include required reviewers.
-5. Reviewer checks workflows reference `${{ secrets.* }}` and scans diffs for plaintext secrets.
+Verification: reviewer checks `pull_request` triggers, the CodeQL workflow, the
+dependabot config, `${{ secrets.* }}` usage with no plaintext secrets; maintainer
+checks production environment protection rules.
 
 ## AI Agent Safety Standard (Mandatory)
-Scope: repository-wide for AI-assisted development workflows and automation.
+Scope: AI-assisted development and automation.
 
-Rules:
-1. AI coding agents MUST NOT receive unrestricted production credentials.
-2. AI coding agents MUST run with least-privilege tokens scoped to required repositories and actions.
-3. Agent-initiated destructive operations MUST require explicit human approval before execution.
-4. Repositories with cloud coding agents MUST configure access controls or explicitly opt out sensitive repositories.
+1. AI coding agents MUST NOT receive unrestricted production credentials and MUST run
+   with least-privilege tokens scoped to required repos/actions.
+2. Agent-initiated destructive operations MUST require explicit human approval before
+   execution.
+3. Repos with cloud coding agents MUST configure access controls or explicitly opt
+   sensitive repositories out.
 
-Verification:
-1. Maintainer checks repository and organization policies for agent permission scopes.
-2. Reviewer checks task or PR audit trail includes explicit human approval for destructive actions.
-3. Maintainer checks cloud-agent access configuration for sensitive repository exclusions or restrictions.
+Verification: maintainer checks agent permission scopes and cloud-agent access config;
+reviewer checks the PR/task trail for explicit approval of destructive actions.
 
 ## Agent Skills and Local Configuration Standard (Mandatory)
-Scope: repository-wide for `.agents/**`, `.claude/**`, `.gitignore` entries that match those paths, and `CLAUDE.md`.
+Scope: `.agents/**`, `.claude/**`, related `.gitignore` entries, `CLAUDE.md`.
 
-Impact and intent:
-1. `AGENTS.md` holds always-on standing instructions; agent skills hold on-demand, model-invocable procedures in the open `SKILL.md` format. `CLAUDE.md` imports `AGENTS.md`; tool-agnostic agents read `AGENTS.md` natively, so no per-tool entry file is required.
-2. A repeatable, verifiable procedure SHOULD be expressed as a skill rather than appended to `AGENTS.md`. A rule that needs to apply on every turn MAY instead stay in `AGENTS.md`. The PR MUST state the justification when a procedure stays in `AGENTS.md`.
+1. A repeatable, verifiable procedure SHOULD be a skill rather than appended to
+   `AGENTS.md`; a rule that must apply every turn MAY stay in `AGENTS.md` (PR states
+   the justification when a procedure stays here).
+2. Canonical skills MUST live under `.agents/skills/**` as `SKILL.md` files; Claude
+   Code discovery MUST be a `.claude/skills` symlink to `.agents/skills` — skill files
+   MUST NOT be duplicated across paths.
+3. Team-owned config MUST be committed (`.agents/skills/**`, the `.claude/skills`
+   symlink, `.claude/agents/**`, `.claude/settings.json`); personal/machine config
+   (`.claude/settings.local.json` and equivalents) MUST stay gitignored.
+4. `.claude/settings.json` and skill files MUST NOT contain plaintext secrets.
+5. Every committed skill MUST be a `SKILL.md` with `name` and `description`
+   frontmatter, and the `description` MUST state when the skill applies.
+6. A command-running skill SHOULD declare `allowed-tools` scoped to the commands it
+   needs, MUST NOT rely on `allowed-tools` to block destructive Git operations, and
+   the PR MUST state when it omits `allowed-tools`.
+7. A committed skill MUST NOT relax or contradict any rule in this `AGENTS.md`.
+8. `CLAUDE.md` (and any per-tool entry file) MUST stay minimal, MUST import/defer to
+   `AGENTS.md`, and MUST NOT duplicate normative rules.
 
-Rules:
-1. Canonical skills MUST live under `.agents/skills/**` as `SKILL.md` files so tool-agnostic agents discover them.
-2. Claude Code discovery MUST be provided by a `.claude/skills` symlink targeting `.agents/skills`; skill files MUST NOT be duplicated across the two paths.
-3. Team-owned skill and configuration files MUST be version-controlled: `.agents/skills/**`, the `.claude/skills` symlink, `.claude/agents/**`, and `.claude/settings.json` MUST be committed.
-4. Personal or machine-specific configuration MUST NOT be committed; `.claude/settings.local.json` and equivalent local overrides MUST stay ignored by `.gitignore`.
-5. `.claude/settings.json` MUST NOT contain plaintext secrets or credentials; secrets MUST follow the CI and Supply Chain Security Standard.
-6. Every committed skill MUST be a `SKILL.md` file with `name` and `description` frontmatter, and the `description` MUST state when the skill applies.
-7. A committed skill that runs commands SHOULD declare `allowed-tools` scoped to the commands it needs. A skill MUST NOT rely on `allowed-tools` to block destructive Git operations listed in the Git Risk Controls section, because not every agent honors that field. The PR MUST state when a skill omits `allowed-tools`.
-8. A committed skill MUST NOT instruct behavior that relaxes or contradicts any rule in this `AGENTS.md`.
-9. `CLAUDE.md` MUST stay minimal and import `AGENTS.md`. If a per-tool entry file is added, it MUST import or defer to `AGENTS.md` rather than restate its rules.
-10. `CLAUDE.md` and any per-tool entry file MUST NOT duplicate normative rules from `AGENTS.md`; skill-specific procedures MUST live under `.agents/skills/**`, not in those files.
-
-Verification:
-1. Reviewer confirms `.claude/skills` is a symlink to `.agents/skills` with `readlink .claude/skills`, and that no `SKILL.md` is duplicated outside `.agents/skills/**`.
-2. Reviewer checks `.gitignore` keeps `.agents/skills/`, the `.claude/skills` symlink, `.claude/agents/`, and `.claude/settings.json` tracked while ignoring `.claude/settings.local.json`, confirmed with `git ls-files .agents/skills .claude` and `git check-ignore -v .claude/settings.local.json`.
-3. Reviewer checks each changed `SKILL.md` includes `name` and `description`, and that command-running skills declare scoped `allowed-tools`.
-4. Reviewer scans `.claude/settings.json` and skill files for plaintext secrets and for instructions that contradict `AGENTS.md`.
-5. Reviewer confirms `CLAUDE.md` (and any per-tool entry file, if present) import or defer to `AGENTS.md` and contain no duplicated normative rules.
+Verification: `readlink .claude/skills` resolves to `../.agents/skills` with no
+duplicated `SKILL.md`; `git ls-files .agents/skills .claude` and
+`git check-ignore -v .claude/settings.local.json` confirm tracking;
+reviewer checks frontmatter, scoped `allowed-tools`, no plaintext secrets, and no
+contradictions.
 
 ## FHIR Interoperability Standard (Mandatory)
-Scope: this standard applies only when a PR introduces or changes `VitalPro Health` FHIR interoperability behavior in `contracts/openapi/**`, `src/**/interface/**`, `src/**/application/**`, or `docs/interop/**`.
+Scope: applies only when a PR introduces/changes VitalPro Health FHIR interoperability
+behavior in `contracts/openapi/**`, `src/**/interface/**`, `src/**/application/**`, or
+`docs/interop/**`. Procedure: `fhir-interop-pr` skill.
 
-Rules:
-1. External healthcare interoperability contracts MUST use HL7 FHIR R4 (`4.0.1`) resource semantics as the default baseline.
-2. FHIR JSON payloads MUST include `resourceType`.
-3. Persisted FHIR resources MUST include `id` according to FHIR base resource rules.
-4. FHIR create-request payloads MAY omit `id` when server-side logical id assignment is intended.
-5. FHIR in this repository MUST be implemented as an interoperability layer for Health external exchange.
-6. FHIR in this repository MUST NOT be used as the mandatory canonical model for Core business entities.
-7. Healthcare scheduling and clinical workflow contracts MUST map to canonical FHIR resources (`Patient`, `Practitioner`, `Organization`, `Location`, `Appointment`, `Schedule`, `Slot`, `Encounter`, `HealthcareService`) when equivalent concepts exist.
-8. The first PR that introduces any FHIR endpoint in this repository MUST create `docs/interop/fhir-mapping.md`, `docs/interop/fhir-pr-checklist.md`, and `docs/interop/capabilitystatement-r4.json`.
-9. Every PR in this scope MUST update `docs/interop/fhir-mapping.md` when that file exists.
-10. Every PR in this scope MUST update `docs/interop/capabilitystatement-r4.json` when FHIR endpoints are added or changed and that file exists.
-11. Any non-R4 behavior MUST be approved by ADR before merge.
-12. Any PR that introduces non-R4 behavior MUST link the approving ADR.
-13. Every PR in this scope MUST include a completed checklist in the PR description.
-14. Every PR in this scope MUST include at least one consulted official HL7 FHIR source URL and one consultation date in `YYYY-MM-DD` format.
-15. Every PR in this scope MUST include a mapping summary in the PR description when `docs/interop/fhir-mapping.md` does not yet exist.
+1. External healthcare interop contracts MUST use HL7 FHIR R4 (`4.0.1`) semantics by
+   default; non-R4 behavior MUST be approved by ADR and the PR MUST link it.
+2. FHIR JSON payloads MUST include `resourceType`; persisted resources MUST include
+   `id` per FHIR base rules; create requests MAY omit `id` for server-assigned ids.
+3. FHIR MUST be an interoperability layer for Health external exchange and MUST NOT be
+   the mandatory canonical model for Core entities.
+4. Scheduling/clinical contracts MUST map to canonical FHIR resources (`Patient`,
+   `Practitioner`, `Organization`, `Location`, `Appointment`, `Schedule`, `Slot`,
+   `Encounter`, `HealthcareService`) when equivalents exist.
+5. The first PR introducing any FHIR endpoint MUST create `docs/interop/fhir-mapping.md`,
+   `docs/interop/fhir-pr-checklist.md`, and `docs/interop/capabilitystatement-r4.json`.
+   When those files exist, in-scope PRs MUST update the mapping (always) and the
+   CapabilityStatement (when endpoints change).
+6. Every in-scope PR MUST include the completed checklist, at least one consulted
+   official HL7 FHIR source URL, and a consultation date in `YYYY-MM-DD`; a mapping
+   summary is required in the PR when `docs/interop/fhir-mapping.md` does not yet
+   exist.
 
-Verification:
-1. Reviewer checks FHIR behavior changes are present only in Health scope.
-2. Reviewer checks `docs/interop/**` exists only after the first FHIR endpoint is introduced.
-3. Reviewer checks mapping evidence is present in `docs/interop/fhir-mapping.md` or PR description according to rule scope.
-4. Reviewer checks PR description contains the completed checklist, consulted official HL7 URL(s), and consultation date.
-5. CI gate runs the affected validation command defined in "CI Execution Guidance" and MUST pass for affected projects.
+Verification: reviewer checks Health-only scope, presence/updates of `docs/interop/**`,
+mapping evidence, the checklist, the HL7 URL, and the date. CI runs the affected
+validation command.
 
 ## Non-Negotiable Coding Rules
-1. No cross-layer shortcuts (`interface` or `infrastructure` cannot bypass `application` use cases).
-2. No anemic boundaries: controllers orchestrate I/O, use cases orchestrate app flow, domain owns business decisions.
+1. No cross-layer shortcuts: `interface`/`infrastructure` MUST NOT bypass `application`
+   use cases.
+2. No anemic boundaries: controllers orchestrate I/O, use cases orchestrate app flow,
+   domain owns business decisions.
 3. Never return ORM entities directly from API handlers.
-4. Every external side effect (DB, HTTP, queue, file, email) MUST be behind an adapter in `infrastructure`.
-5. Domain logic MUST be deterministic and unit-testable without network/database.
-6. Every new module MUST ship with at least one core use case and corresponding tests.
-7. No hidden coupling across Nx projects through path hacks or forbidden imports.
+4. Every external side effect (DB, HTTP, queue, file, email) MUST be behind an
+   `infrastructure` adapter.
+5. Domain logic MUST be deterministic and unit-testable without network/DB.
+6. Every new module MUST ship with at least one core use case and tests.
+7. No hidden coupling across Nx projects via path hacks or forbidden imports.
 
 ## Testing Standard
-- `domain`: fast unit tests for invariants and rules.
-- `application`: unit tests with mocked ports for happy path + error path.
-- `infrastructure`: integration tests for adapters (DB/external providers) when applicable.
-- `interface`: contract tests for request/response shape and status codes.
+- **domain**: fast unit tests for invariants/rules.
+- **application**: unit tests with mocked ports for happy and error paths.
+- **infrastructure**: integration tests for adapters (DB/external) when applicable.
+- **interface**: contract tests for request/response shape and status codes.
 
-Tooling requirements:
-1. TypeScript unit and integration test suites MUST use Vitest by default.
-2. Browser end-to-end tests MUST use Playwright for web applications.
-3. React component tests MUST use React Testing Library and assert user-visible behavior.
-4. Critical mobile user journeys MUST include end-to-end coverage with Detox or an ADR-approved Expo-compatible equivalent.
-5. Projects SHOULD enforce pre-commit checks with Husky and lint-staged.
-6. Deviation from pre-commit tooling is acceptable only when equivalent CI gates are present for all staged checks.
-7. PRs that deviate from pre-commit tooling MUST include explicit justification.
+Tooling:
+1. TS unit/integration suites MUST use **Vitest**.
+2. Web browser end-to-end tests MUST use **Playwright** (suite in `apps/web-e2e`, run
+   with `pnpm run e2e`; see the `frontend-e2e` skill).
+3. React component tests MUST use React Testing Library and assert user-visible
+   behavior.
+4. Critical mobile journeys MUST have e2e coverage with Detox or an ADR-approved
+   Expo-compatible equivalent.
+5. Pre-commit checks SHOULD be enforced with Husky and lint-staged; deviation is
+   acceptable only with equivalent CI gates for all staged checks, justified in the PR.
 
-Minimum gate for merge:
-1. Lint passes for affected projects.
-2. Typecheck passes for affected projects.
-3. Tests pass for affected projects.
-4. Build passes for affected deployable projects.
-5. No layer dependency violations.
-6. No Nx module-boundary violations.
+Minimum merge gate (affected projects): lint, typecheck, test, build pass; web e2e
+passes when web behavior changes; no layer-dependency or Nx module-boundary
+violations; dead-code and duplication gates pass.
 
 ## File and Naming Conventions
-- `*.entity.ts`, `*.value-object.ts`, `*.domain-service.ts`
-- `*.use-case.ts`
-- `*.repository.ts` for ports/adapters (with clear interface vs implementation naming)
-- `*.controller.ts` or `*.handler.ts`
-- `*.dto.ts`
-- `*.mapper.ts` for explicit mapping boundaries
-
-Prefer explicit names over generic names (`service.ts`, `utils.ts` are discouraged).
+`*.entity.ts`, `*.value-object.ts`, `*.domain-service.ts`, `*.use-case.ts`,
+`*.repository.ts` (clear interface vs implementation), `*.controller.ts`/`*.handler.ts`,
+`*.dto.ts`, `*.mapper.ts`. Prefer explicit names; `service.ts`/`utils.ts` are
+discouraged.
 
 ## Module Scaffolding Standard (Mandatory)
-Scope: repository-wide for new module libraries under `libs/**`.
+Scope: new module libraries under `libs/**`. Procedure: `scaffold-module` skill.
 
-Rules:
-1. Every new module library under `libs/**` MUST be scaffolded with the local Nx generator `pnpm nx g @vitalpro/tools:clean-module <module-name> --domain=<core|health>`.
-2. Direct manual creation of new module library scaffolding under `libs/**` MUST NOT be used when the local generator can produce the same baseline structure.
-3. Generator output for new modules under `libs/**` MUST preserve Clean Architecture folders in `src/domain`, `src/application`, `src/infrastructure`, and `src/interface`.
-4. Every new module library under `libs/**` MUST include Nx targets for `build`, `lint`, `test`, and `typecheck`.
-5. Every new module library under `libs/**` MUST include a `surface:core` or `surface:health` tag in its Nx project configuration.
+1. New `libs/**` modules MUST be scaffolded with `pnpm nx g @vitalpro/tools:clean-module
+   <name> --domain=<core|health>`; manual scaffolding MUST NOT be used when the
+   generator produces the same baseline.
+2. Generator output MUST preserve `src/{domain,application,infrastructure,interface}`,
+   include `build`, `lint`, `test`, and `typecheck` targets, and carry a
+   `surface:core` or `surface:health` tag in `project.json`.
 
-Verification:
-1. Reviewer runs `pnpm nx g @vitalpro/tools:clean-module <module-name> --domain=<core|health> --dry-run` and confirms generator availability and output shape.
-2. Reviewer checks the PR diff for `libs/<module-name>/src/domain`, `libs/<module-name>/src/application`, `libs/<module-name>/src/infrastructure`, and `libs/<module-name>/src/interface`.
-3. Reviewer checks `libs/<module-name>/project.json` and confirms `build`, `lint`, `test`, and `typecheck` targets are present.
-4. Reviewer checks `libs/<module-name>/project.json` and confirms `surface:core` or `surface:health` is present in `tags`.
+Verification: `pnpm nx g @vitalpro/tools:clean-module <name> --domain=<core|health>
+--dry-run` shows the expected shape; reviewer checks the four layer folders, the four
+targets, and the surface tag.
 
 ## Change Workflow
-For every feature or bugfix:
-1. Identify target module, target Nx project(s), and layer(s).
-2. Add/update domain rule first if business behavior changes.
-3. Implement/update use case in `application`.
-4. Implement adapters in `infrastructure` only if side effects are needed.
-5. Expose through `interface` with DTO validation.
-6. Add/adjust tests by layer.
-7. Update OpenAPI contract when API surface changes.
-8. Validate with affected Nx commands before merge.
+1. Identify the target module, Nx project(s), and layer(s).
+2. Update domain rules first when behavior changes, then the application use case,
+   then infrastructure adapters (only if side effects are needed), then the interface
+   with DTO validation.
+3. Add/adjust tests by layer; update the OpenAPI contract when the API surface
+   changes.
+4. Validate with affected Nx commands before merge. The `engineering-discipline` skill
+   is the end-to-end protocol.
 
 ## CI Execution Guidance
-This section is the single source of truth for the affected validation command referenced by
-verification gates throughout this document.
-
-Default PR validation command pattern (adapt targets as needed):
+Single source of truth for the affected validation command referenced by verification
+gates above:
 
 ```bash
 pnpm nx affected -t lint,typecheck,test,build --base="$NX_BASE" --head="$NX_HEAD"
 ```
 
-CI MUST set `NX_BASE` to the latest successful `main` commit and `NX_HEAD` to the current commit.
+CI MUST set `NX_BASE` to the latest successful `main` commit and `NX_HEAD` to the
+current commit. The full local/CI gate is `pnpm run check` (lint, typecheck, test,
+build, `openapi:lint`, `ai:guard`, `dead-code`, `dupes`); browser e2e runs via
+`pnpm run e2e`.
 
 ## Exceptions and ADRs
-Any exception to this document MUST include a short ADR with:
-- Context
-- Decision
-- Consequences
-- Expiration/review date
-
-Without ADR approval, this AGENTS.md MUST be treated as the source of truth.
+Any exception MUST have a short ADR with Context, Decision, Consequences, and an
+expiration/review date. Without ADR approval, this `AGENTS.md` is the source of truth.

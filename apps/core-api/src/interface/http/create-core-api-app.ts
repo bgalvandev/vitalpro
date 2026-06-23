@@ -178,6 +178,7 @@ export async function createCoreApiApp(
     reply.header('Pragma', 'no-cache');
     reply.header('X-Content-Type-Options', 'nosniff');
     const token = extractBearerToken(request.headers.authorization);
+    // eslint-disable-next-line security/detect-possible-timing-attacks -- this is a null/absence check, not a secret comparison; the secret is compared in constant time via tokensMatch() (timingSafeEqual) below.
     if (token === null) {
       throw httpError(401, 'Authorization header required');
     }

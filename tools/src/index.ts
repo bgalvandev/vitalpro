@@ -1,4 +1,4 @@
-export { cleanModuleGenerator } from './generators/clean-module/clean-module';
+export { default as cleanModuleGenerator } from './generators/clean-module/clean-module';
 export type {
   CleanModuleDomain,
   CleanModuleGeneratorSchema,
