@@ -4,8 +4,14 @@
   "sourceRoot": "apps/web",
   "projectType": "application",
   "tags": ["surface:core", "layer:interface", "type:app"],
-  "// targets": "dev/start are inferred by @nx/next/plugin; build is pinned to webpack",
+  "// targets": "dev pinned to 3001 (avoids core-api:3000); build pinned to webpack",
   "targets": {
+    "dev": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "node_modules/.bin/next dev apps/web --port 3001"
+      }
+    },
     "build": {
       "executor": "nx:run-commands",
       "outputs": ["{projectRoot}/.next"],
