@@ -35,7 +35,8 @@ protocol; the topic skills ([[frontend-architecture]], [[frontend-performance]],
 
 - Clean Architecture direction is non-negotiable: `interface → application →
   domain`, `infrastructure → application/domain`, `domain` free of framework/IO.
-- Core must not depend on Health; FHIR stays at Health interop boundaries.
+- Core must not depend on Health. Entities are clean internal models — research the
+  best-fit reference per concept; references inform fields, never structure.
 - External side effects (DB, HTTP, queue, file, email) live behind an
   `infrastructure` adapter. API handlers never return ORM/Prisma shapes.
 

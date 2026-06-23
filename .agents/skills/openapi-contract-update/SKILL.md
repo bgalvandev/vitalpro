@@ -7,9 +7,9 @@ allowed-tools: Read Glob Grep Bash(pnpm run openapi:lint) Bash(pnpm exec redocly
 
 # OpenAPI contract update
 
-Enforces AGENTS.md → "Frontend and API Contract Standard" and "API Query and Response Shape
-Standard". Run this whenever an externally-consumed API surface changes. Internal
-TypeScript-only APIs (e.g. tRPC) are out of scope.
+Enforces AGENTS.md → "API Contract and Response Shape Standard". Run this whenever an
+externally-consumed API surface changes. Internal TypeScript-only APIs (e.g. tRPC) are
+out of scope.
 
 ## When this applies
 
