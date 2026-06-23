@@ -395,32 +395,23 @@ duplicated `SKILL.md`; `git ls-files .agents/skills .claude` and
 reviewer checks frontmatter, scoped `allowed-tools`, no plaintext secrets, and no
 contradictions.
 
-## FHIR Interoperability Standard (Mandatory)
-Scope: applies only when a PR introduces/changes VitalPro Health FHIR interoperability
-behavior in `contracts/openapi/**`, `src/**/interface/**`, `src/**/application/**`, or
-`docs/interop/**`. Procedure: `fhir-interop-pr` skill.
+## Health Data Modeling and FHIR (Mandatory)
+Scope: VitalPro Health modules and any future health-data exchange. Procedure:
+`health-entity-modeling` skill.
 
-1. External healthcare interop contracts MUST use HL7 FHIR R4 (`4.0.1`) semantics by
-   default; non-R4 behavior MUST be approved by ADR and the PR MUST link it.
-2. FHIR JSON payloads MUST include `resourceType`; persisted resources MUST include
-   `id` per FHIR base rules; create requests MAY omit `id` for server-assigned ids.
-3. FHIR MUST be an interoperability layer for Health external exchange and MUST NOT be
-   the mandatory canonical model for Core entities.
-4. Scheduling/clinical contracts MUST map to canonical FHIR resources (`Patient`,
-   `Practitioner`, `Organization`, `Location`, `Appointment`, `Schedule`, `Slot`,
-   `Encounter`, `HealthcareService`) when equivalents exist.
-5. The first PR introducing any FHIR endpoint MUST create `docs/interop/fhir-mapping.md`,
-   `docs/interop/fhir-pr-checklist.md`, and `docs/interop/capabilitystatement-r4.json`.
-   When those files exist, in-scope PRs MUST update the mapping (always) and the
-   CapabilityStatement (when endpoints change).
-6. Every in-scope PR MUST include the completed checklist, at least one consulted
-   official HL7 FHIR source URL, and a consultation date in `YYYY-MM-DD`; a mapping
-   summary is required in the PR when `docs/interop/fhir-mapping.md` does not yet
-   exist.
+1. Health entities MUST be modeled as clean internal domain models (per the Architecture
+   Standard), using HL7 FHIR R4, openEHR, and clinical terminologies (SNOMED CT, LOINC)
+   only as field/concept references. A FHIR/openEHR resource structure MUST NOT be used
+   as the internal domain model; coded clinical fields SHOULD reference a terminology
+   (code + system) rather than ad-hoc enums (justify deviations in the PR).
+2. External FHIR interoperability (exposing or consuming FHIR APIs) is out of scope
+   until approved by an ADR. When introduced, external contracts MUST use FHIR R4
+   (`4.0.1`) at the interoperability boundary, MUST NOT become the canonical internal
+   model, and the ADR MUST (re)establish the interop rules and any required
+   `docs/interop/**` artifacts (mapping, checklist, CapabilityStatement).
 
-Verification: reviewer checks Health-only scope, presence/updates of `docs/interop/**`,
-mapping evidence, the checklist, the HL7 URL, and the date. CI runs the affected
-validation command.
+Verification: reviewer checks Health entities are clean non-FHIR internal models with
+terminology-referenced coded fields; any FHIR interop work links an approving ADR.
 
 ## Non-Negotiable Coding Rules
 1. No cross-layer shortcuts: `interface`/`infrastructure` MUST NOT bypass `application`
