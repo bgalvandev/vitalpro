@@ -1,5 +1,6 @@
 import nextEslintPluginNext from '@next/eslint-plugin-next';
 import nx from '@nx/eslint-plugin';
+import reactHooks from 'eslint-plugin-react-hooks';
 import tsEslintPlugin from '@typescript-eslint/eslint-plugin';
 import tsParser from '@typescript-eslint/parser';
 import baseConfig from '../../eslint.config.mjs';
@@ -23,6 +24,16 @@ export default [
     plugins: { '@typescript-eslint': tsEslintPlugin },
   },
   ...nx.configs['flat/react-typescript'],
+  // React Compiler / Rules-of-React lint. eslint-plugin-react-hooks v7 ships the
+  // compiler diagnostics (purity, set-state-in-render, preserve-manual-memoization,
+  // immutability, ...) as errors via `recommended-latest`. The nx react preset does
+  // not register this plugin, so we register it explicitly. Its own `plugins` map is
+  // malformed (keys under '0'), so we apply only its `rules`.
+  {
+    files: ['**/*.{ts,tsx,jsx}'],
+    plugins: { 'react-hooks': reactHooks },
+    rules: reactHooks.configs['recommended-latest'].rules,
+  },
   ...baseConfig,
   // The base config wires the TS parser for **/*.ts only; TSX/JSX need it too,
   // with JSX parsing enabled.
