@@ -1,4 +1,4 @@
-import { AppointmentsEntity } from '@vitalpro/appointments';
+import { AppointmentEntity } from '@vitalpro/appointments';
 import { afterEach, describe, expect, it } from 'vitest';
 
 import { createCoreApiApp } from './interface/http/create-core-api-app';
@@ -26,7 +26,7 @@ describe('createCoreApiApp', () => {
       serviceToken: 'local-test-token',
       appointmentRepository: {
         async findById(id) {
-          return AppointmentsEntity.create({
+          return AppointmentEntity.create({
             id,
             status: 'scheduled',
             serviceName: 'Consultation call',

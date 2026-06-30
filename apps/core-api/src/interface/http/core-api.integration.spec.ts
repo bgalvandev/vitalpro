@@ -1,4 +1,4 @@
-import { type AppointmentRepository, AppointmentsEntity } from '@vitalpro/appointments';
+import { type AppointmentRepository, AppointmentEntity } from '@vitalpro/appointments';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 
 import { createCoreApiApp } from './create-core-api-app';
@@ -24,11 +24,11 @@ const appointmentRepository: AppointmentRepository = {
     if (id !== 'apt-001') {
       return null;
     }
-    return AppointmentsEntity.create({ id, status: 'scheduled', ...sampleDetail });
+    return AppointmentEntity.create({ id, status: 'scheduled', ...sampleDetail });
   },
   async list({ limit }) {
     return [
-      AppointmentsEntity.create({ id: 'apt-001', status: 'scheduled', ...sampleDetail }),
+      AppointmentEntity.create({ id: 'apt-001', status: 'scheduled', ...sampleDetail }),
     ].slice(0, limit);
   },
 };
