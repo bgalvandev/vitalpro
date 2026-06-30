@@ -1,6 +1,6 @@
 ---
 name: frontend-e2e
-description: Write and run browser end-to-end tests for apps/web with Playwright — Page Object Model, role/text locators, web-first assertions, and a stub API for Server Component data. Use when adding e2e coverage for a web user journey or debugging the web-e2e suite.
+description: Write and run browser end-to-end tests for apps/web with Playwright — Page Object Model, role/text locators, web-first assertions, visual regression with toHaveScreenshot, and a stub API for Server Component data. Use when adding e2e coverage for a web user journey, adding visual-regression baselines, or debugging the web-e2e suite.
 allowed-tools: Bash(pnpm run e2e), Bash(pnpm nx run web-e2e:e2e), Bash(pnpm exec playwright*), Bash(pnpm nx build web*)
 ---
 
@@ -66,6 +66,32 @@ WSLg renders real windows), you can see the run, not just the result. From
 
 CI always runs headless; these modes are for local development only.
 
+## Visual regression (`toHaveScreenshot`)
+
+Playwright compares the live page against a committed baseline PNG, pixel-by-pixel
+(`pixelmatch`), after auto-waiting for the page to stabilize (no network, no
+animations, no running JS). Our stub-driven RSC pipeline makes this reliable: the
+data is deterministic, so a diff means the **UI** changed, not the data.
+
+- Assert on a **specific element** for component-level checks; reserve full-page
+  shots for a few critical flows:
+  `await expect(page.getByRole('table')).toHaveScreenshot('appointments-table.png')`.
+- **Baselines must be generated in the CI environment**, never on WSL/local — fonts
+  and anti-aliasing differ and would produce false diffs. Update them via the CI job
+  (or the same Docker image CI uses) with `--update-snapshots`, then commit the PNGs
+  under `*.spec.ts-snapshots/`. A baseline regenerated on a developer machine MUST
+  NOT be committed.
+- **Mask dynamic content** so it never trips the diff: `toHaveScreenshot({ mask:
+  [page.getByTestId('timestamp')], animations: 'disabled' })`.
+- Set tolerances in `playwright.config.ts` under `expect.toHaveScreenshot`
+  (`maxDiffPixelRatio: 0.01`, `threshold: 0.2`) — tight enough to catch real
+  regressions, loose enough to ignore sub-pixel anti-aliasing.
+- A failed visual check writes `expected`/`actual`/`diff` PNGs into `test-results/`;
+  open them with `pnpm exec playwright show-report`.
+
+Treat baselines as reviewed source: a diff in a PR is a deliberate UI change to
+approve, exactly like a code diff.
+
 ## CI
 
 The `e2e` job in `.github/workflows/ci.yml` (needs `quality`) installs browsers with
@@ -77,5 +103,7 @@ The `e2e` job in `.github/workflows/ci.yml` (needs `quality`) installs browsers 
 - `pnpm run e2e` passes locally (after installing browsers) and in the CI `e2e` job.
 - Reviewer checks locators are role/text-based, assertions are web-first, and new
   data flows through the stub, not browser mocks.
+- Any committed `*-snapshots/` baseline was generated in CI (not on a dev machine),
+  and a visual diff in the PR is an intended UI change, not an accident.
 
 Related: [[frontend-architecture]], [[frontend-performance]], [[engineering-discipline]].
