@@ -1,6 +1,6 @@
 ---
 name: backend-performance
-description: Keep backend reads fast and payloads lean — explicit Prisma select, bounded/paginated queries, no N+1, indexes for filters/sorts, and raw SQL only behind an adapter for measured hot paths. Use when adding or changing a query, repository method, or list endpoint in core-api/libs.
+description: Keep backend reads fast and payloads lean — explicit Prisma select, bounded/paginated queries, no N+1, indexes for filters/sorts, raw SQL only behind an adapter for measured hot paths, and fast/safe HTTP transport (ETag→304, private caching, compression at the edge). Use when adding or changing a query, repository method, list endpoint, or response/caching behavior in core-api/libs.
 ---
 
 # Backend Performance (core-api + libs)
@@ -62,6 +62,41 @@ before measuring.
 
 Add caching (e.g. Redis) only for a measured, repeated, read-heavy path — not
 speculatively (Simplicity Standard). Document what is cached and its invalidation.
+
+## Make the response fast over the wire (transport half)
+
+The query work above keeps the payload small; this keeps the *request* cheap. The API
+is authenticated (bearer token), so every transport choice is also a **security**
+choice — the safe options below are the only recommended ones.
+
+- **Conditional requests (ETag → 304):** the biggest per-request win for read
+  endpoints. Send an `ETag`; when the client returns `If-None-Match`, reply `304 Not
+  Modified` with no body. **Derive the ETag from a version field (`updatedAt`/`version`),
+  not from hashing the response body** — `hash(id + updatedAt)` is constant-time and
+  never blocks the event loop, whereas hashing a large JSON body on every request does.
+  For a collection, derive it from `count + max(updatedAt)`. A **weak** ETag (`W/"…"`)
+  is correct for JSON bandwidth-saving (CDNs downgrade strong ETags anyway).
+- **`Cache-Control` on authenticated responses — never `public`.** A shared cache/CDN
+  serving a `public` user-scoped response leaks one user's data to another. Use
+  `Cache-Control: private, no-cache` **plus `Vary: Authorization`** so the ETag carries
+  revalidation while no shared cache ever stores or mis-keys the body. Omitting `Vary`
+  is itself the leak.
+- **Compression belongs at the edge, not in Node.** Do **not** add `@fastify/compress`
+  to the app: Node is single-threaded and compression is CPU-intensive, and compressing
+  HTTPS responses that mix a secret with reflected input enables **BREACH**. Offload
+  gzip/brotli to the reverse proxy/CDN (Nginx/Cloudflare) at deploy time; never compress
+  a response that embeds a token/secret.
+- **Never block the event loop.** One synchronous heavy serialization (a huge JSON,
+  CPU-bound transform) stalls *every* in-flight request. When export/report payloads
+  arrive, **stream** them instead of buffering — and that is also when to revisit
+  compression at the proxy.
+- **Measure before optimizing.** Track p95/p99 latency per route; optimize the route
+  the numbers point at, not the one you assume. This mirrors the "measured hot path"
+  rule for raw SQL above.
+
+Trigger note: today the API is read-only GETs, so ETag + `private`/`Vary` are the
+applicable wins now; compression and streaming are deploy/infra concerns to enable when
+payloads grow, not app code to add speculatively (Simplicity Standard).
 
 ## Concurrency — add when write endpoints arrive (trigger)
 
