@@ -39,4 +39,5 @@ this skill is about *what it should hold*.)
 - Coded fields bind to an authoritative vocabulary, not ad-hoc enums.
 
 Related: [[backend-architecture]] (how entities are structured),
+[[database-design]] (how the entity maps to Postgres tables, indexes, and migrations),
 [[engineering-discipline]], and the `scaffold-module` skill.

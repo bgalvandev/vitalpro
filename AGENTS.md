@@ -29,6 +29,11 @@ Applies to any change to normative instructions in any `AGENTS.md` in this tree.
 3. Direct system/developer/user instructions override `AGENTS.md`.
 4. Conflicting rules at the same scope MUST be resolved in the same PR; unresolved
    conflicts are merge blockers.
+5. This standard is evolvable, not frozen: when a better tool, pattern, or practice
+   supersedes a rule, the contributor MUST update the affected rule in the **same**
+   change (not work around it silently). The constraint is coherence, never a ceiling
+   on adopting something better — silent drift between a rule and the actual practice
+   is the only thing forbidden.
 
 ## Nested AGENTS.md Activation Rule (Mandatory)
 Scope: repository-wide.
@@ -171,7 +176,9 @@ Standard: **Nx monorepo + pnpm workspaces**. Root MUST contain `nx.json`,
 **Pragmatic Clean Architecture per module.** This standard is non-negotiable; PRs
 that violate it MUST be rejected. Procedures: the `backend-architecture` and
 `backend-performance` skills for `apps/core-api` and `libs/**`; the
-`frontend-architecture` and `frontend-performance` skills for `apps/web`.
+`frontend-architecture` and `frontend-performance` skills for `apps/web`; the
+`database-design` skill for the Prisma/Postgres schema, indexes, and migrations behind
+any module.
 
 Dependency direction (mandatory; enforced by `pnpm run ai:guard`):
 
@@ -381,15 +388,20 @@ Scope: `.agents/**`, `.claude/**`, related `.gitignore` entries, `CLAUDE.md`.
 6. A command-running skill SHOULD declare `allowed-tools` scoped to the commands it
    needs, MUST NOT rely on `allowed-tools` to block destructive Git operations, and
    the PR MUST state when it omits `allowed-tools`.
-7. A committed skill MUST NOT relax or contradict any rule in this `AGENTS.md`.
+7. A committed skill MUST NOT *silently* contradict a rule in this `AGENTS.md`. A
+   skill MAY supersede a rule when it documents a better practice, but the same change
+   MUST update the affected `AGENTS.md` rule so the standard and the skill stay
+   coherent (per Precedence point 5). Hidden divergence between a skill and the
+   standard is the merge blocker — not the improvement itself.
 8. `CLAUDE.md` (and any per-tool entry file) MUST stay minimal, MUST import/defer to
    `AGENTS.md`, and MUST NOT duplicate normative rules.
 
 Verification: `readlink .claude/skills` resolves to `../.agents/skills` with no
 duplicated `SKILL.md`; `git ls-files .agents/skills .claude` and
 `git check-ignore -v .claude/settings.local.json` confirm tracking;
-reviewer checks frontmatter, scoped `allowed-tools`, no plaintext secrets, and no
-contradictions.
+reviewer checks frontmatter, scoped `allowed-tools`, no plaintext secrets, and that
+any skill that supersedes a rule updated that rule in the same change (no silent
+contradictions).
 
 ## Entity Modeling (Mandatory)
 Scope: any new domain entity, value object, module, or domain rule. Procedure:
