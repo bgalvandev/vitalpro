@@ -1,4 +1,4 @@
-import type { AppointmentStatus, AppointmentsEntity } from '../domain';
+import type { AppointmentStatus, AppointmentEntity } from '../domain';
 
 export interface AppointmentResult {
   id: string;
@@ -15,12 +15,12 @@ export interface ListAppointmentsOptions {
 }
 
 export interface AppointmentRepository {
-  findById(id: string): Promise<AppointmentsEntity | null>;
+  findById(id: string): Promise<AppointmentEntity | null>;
   // Returns appointments ordered by start time ascending, capped at `limit`.
-  list(options: ListAppointmentsOptions): Promise<AppointmentsEntity[]>;
+  list(options: ListAppointmentsOptions): Promise<AppointmentEntity[]>;
 }
 
-function toResult(appointment: AppointmentsEntity): AppointmentResult {
+function toResult(appointment: AppointmentEntity): AppointmentResult {
   return {
     id: appointment.id,
     status: appointment.status,

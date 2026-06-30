@@ -79,7 +79,7 @@ paths:
         "401":
           description: Default Response
           content:
-            application/json:
+            application/problem+json:
               schema:
                 type: object
                 properties:
@@ -103,7 +103,7 @@ paths:
         "500":
           description: Default Response
           content:
-            application/json:
+            application/problem+json:
               schema:
                 type: object
                 properties:
@@ -174,7 +174,7 @@ paths:
         "401":
           description: Default Response
           content:
-            application/json:
+            application/problem+json:
               schema:
                 type: object
                 properties:
@@ -198,7 +198,7 @@ paths:
         "404":
           description: Default Response
           content:
-            application/json:
+            application/problem+json:
               schema:
                 type: object
                 properties:
@@ -222,7 +222,7 @@ paths:
         "500":
           description: Default Response
           content:
-            application/json:
+            application/problem+json:
               schema:
                 type: object
                 properties:

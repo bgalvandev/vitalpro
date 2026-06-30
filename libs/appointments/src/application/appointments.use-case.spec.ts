@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { type AppointmentStatus, AppointmentsEntity } from '../domain';
+import { type AppointmentStatus, AppointmentEntity } from '../domain';
 
 import {
   type AppointmentRepository,
@@ -17,8 +17,8 @@ const detail = {
   durationMinutes: 30,
 };
 
-function entity(id: string, status: AppointmentStatus): AppointmentsEntity {
-  return AppointmentsEntity.create({ id, status, ...detail });
+function entity(id: string, status: AppointmentStatus): AppointmentEntity {
+  return AppointmentEntity.create({ id, status, ...detail });
 }
 
 const repository: AppointmentRepository = {

@@ -64,6 +64,41 @@ const problemDetailsSchema = z.object({
 
 const PROBLEM_CONTENT_TYPE = 'application/problem+json';
 
+// The Zod transform emits `application/json` for every response, but the error
+// handler sends RFC 9457 bodies as `application/problem+json`. Relabel every
+// error (>= 400) media type so the published contract matches what the server
+// actually returns. This runs for both the served spec and the generated
+// contract (scripts/contracts/generate-openapi.mjs), keeping them in sync.
+function useProblemJsonForErrorResponses<T extends { paths?: unknown }>(
+  document: T,
+): T {
+  const paths = (document.paths ?? {}) as Record<string, unknown>;
+  for (const pathItem of Object.values(paths)) {
+    if (!pathItem || typeof pathItem !== 'object') {
+      continue;
+    }
+    for (const operation of Object.values(pathItem as Record<string, unknown>)) {
+      const responses = (operation as { responses?: Record<string, unknown> })
+        ?.responses;
+      if (!responses || typeof responses !== 'object') {
+        continue;
+      }
+      for (const [status, response] of Object.entries(responses)) {
+        if (Number(status) < 400) {
+          continue;
+        }
+        const content = (response as { content?: Record<string, unknown> })
+          ?.content;
+        if (content && 'application/json' in content) {
+          content[PROBLEM_CONTENT_TYPE] = content['application/json'];
+          delete content['application/json'];
+        }
+      }
+    }
+  }
+  return document;
+}
+
 interface HttpError extends Error {
   statusCode: number;
 }
@@ -152,6 +187,10 @@ export async function createCoreApiApp(
       },
     },
     transform: jsonSchemaTransform,
+    transformObject: (documentObject) =>
+      'openapiObject' in documentObject
+        ? useProblemJsonForErrorResponses(documentObject.openapiObject)
+        : documentObject.swaggerObject,
   });
 
   // Operational endpoints — outside the business contract, no authentication.

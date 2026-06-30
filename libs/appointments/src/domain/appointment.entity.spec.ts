@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { AppointmentsEntity } from './appointments.entity';
+import { AppointmentEntity } from './appointment.entity';
 
 const baseProps = {
   id: 'seed-id',
@@ -11,9 +11,9 @@ const baseProps = {
   durationMinutes: 30,
 };
 
-describe('AppointmentsEntity', () => {
+describe('AppointmentEntity', () => {
   it('keeps deterministic identity and exposes its details', () => {
-    const entity = AppointmentsEntity.create(baseProps);
+    const entity = AppointmentEntity.create(baseProps);
     expect(entity.id).toBe('seed-id');
     expect(entity.status).toBe('scheduled');
     expect(entity.serviceName).toBe('Consultation call');
@@ -23,26 +23,26 @@ describe('AppointmentsEntity', () => {
   });
 
   it('rejects an empty id', () => {
-    expect(() => AppointmentsEntity.create({ ...baseProps, id: ' ' })).toThrow(
+    expect(() => AppointmentEntity.create({ ...baseProps, id: ' ' })).toThrow(
       'Appointment id is required.',
     );
   });
 
   it('rejects a blank service or client name', () => {
     expect(() =>
-      AppointmentsEntity.create({ ...baseProps, serviceName: ' ' }),
+      AppointmentEntity.create({ ...baseProps, serviceName: ' ' }),
     ).toThrow('Appointment service name is required.');
     expect(() =>
-      AppointmentsEntity.create({ ...baseProps, clientName: '' }),
+      AppointmentEntity.create({ ...baseProps, clientName: '' }),
     ).toThrow('Appointment client name is required.');
   });
 
   it('rejects a non-positive or non-integer duration', () => {
     expect(() =>
-      AppointmentsEntity.create({ ...baseProps, durationMinutes: 0 }),
+      AppointmentEntity.create({ ...baseProps, durationMinutes: 0 }),
     ).toThrow('Appointment duration must be a positive integer.');
     expect(() =>
-      AppointmentsEntity.create({ ...baseProps, durationMinutes: 12.5 }),
+      AppointmentEntity.create({ ...baseProps, durationMinutes: 12.5 }),
     ).toThrow('Appointment duration must be a positive integer.');
   });
 });

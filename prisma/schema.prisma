@@ -16,6 +16,9 @@ model Appointment {
   createdAt       DateTime          @default(now()) @map("created_at")
   updatedAt       DateTime          @updatedAt @map("updated_at")
 
+  // The collection endpoint always orders by start time ascending; index it so
+  // the list query sorts on an index instead of a full scan + sort.
+  @@index([startsAt])
   @@map("appointments")
 }
 
