@@ -1,4 +1,4 @@
-export interface AppointmentsProps {
+export interface AppointmentProps {
   id: string;
   status: AppointmentStatus;
   serviceName: string;
@@ -15,10 +15,10 @@ const APPOINTMENT_STATUSES = new Set<AppointmentStatus>([
   'cancelled',
 ]);
 
-export class AppointmentsEntity {
-  private constructor(private readonly props: AppointmentsProps) {}
+export class AppointmentEntity {
+  private constructor(private readonly props: AppointmentProps) {}
 
-  static create(props: AppointmentsProps): AppointmentsEntity {
+  static create(props: AppointmentProps): AppointmentEntity {
     if (props.id.trim().length === 0) {
       throw new Error('Appointment id is required.');
     }
@@ -43,7 +43,7 @@ export class AppointmentsEntity {
       throw new Error('Appointment duration must be a positive integer.');
     }
 
-    return new AppointmentsEntity(props);
+    return new AppointmentEntity(props);
   }
 
   get id(): string {

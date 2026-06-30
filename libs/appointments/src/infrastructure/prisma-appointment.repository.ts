@@ -4,7 +4,7 @@ import type {
 } from '../application';
 import {
   type AppointmentStatus,
-  AppointmentsEntity,
+  AppointmentEntity,
 } from '../domain';
 
 interface AppointmentRecord {
@@ -55,8 +55,8 @@ function toAppointmentStatus(status: string): AppointmentStatus {
   throw new Error('Appointment status is invalid.');
 }
 
-function toEntity(record: AppointmentRecord): AppointmentsEntity {
-  return AppointmentsEntity.create({
+function toEntity(record: AppointmentRecord): AppointmentEntity {
+  return AppointmentEntity.create({
     id: record.id,
     status: toAppointmentStatus(record.status),
     serviceName: record.serviceName,
@@ -69,7 +69,7 @@ function toEntity(record: AppointmentRecord): AppointmentsEntity {
 export class PrismaAppointmentRepository implements AppointmentRepository {
   constructor(private readonly prisma: PrismaAppointmentClient) {}
 
-  async findById(id: string): Promise<AppointmentsEntity | null> {
+  async findById(id: string): Promise<AppointmentEntity | null> {
     const record = await this.prisma.appointment.findUnique({
       where: { id },
       select: APPOINTMENT_SELECT,
@@ -82,7 +82,7 @@ export class PrismaAppointmentRepository implements AppointmentRepository {
     return toEntity(record);
   }
 
-  async list({ limit }: ListAppointmentsOptions): Promise<AppointmentsEntity[]> {
+  async list({ limit }: ListAppointmentsOptions): Promise<AppointmentEntity[]> {
     const records = await this.prisma.appointment.findMany({
       select: APPOINTMENT_SELECT,
       orderBy: { startsAt: 'asc' },
